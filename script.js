@@ -664,3 +664,147 @@ document.addEventListener('DOMContentLoaded', function () {
 
     console.log('🚀 NeonChat · FAB + Dialpad + Settings + Themes');
 });
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// 12. REGISTRATION
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+function initRegistration() {
+    const overlay = document.getElementById('regOverlay');
+    const openBtn = document.getElementById('openRegForm');
+    const closeBtn = document.getElementById('regClose');
+    const submitBtn = document.getElementById('regSubmit');
+    const otpSend = document.getElementById('otpSend');
+
+    // Open
+    openBtn.addEventListener('click', () => overlay.classList.add('open'));
+
+    // Close
+    closeBtn.addEventListener('click', () => overlay.classList.remove('open'));
+    overlay.addEventListener('click', (e) => {
+        if (e.target === overlay) overlay.classList.remove('open');
+    });
+
+    // OTP simulation
+    otpSend.addEventListener('click', () => {
+        const phone = document.getElementById('regPhone').value.trim();
+        if (!phone) {
+            alert('Please enter phone number first');
+            return;
+        }
+        alert(`📱 OTP sent to ${phone} (Demo: 1234)`);
+        document.getElementById('regOtp').value = '1234';
+    });
+
+    // Register
+    submitBtn.addEventListener('click', () => {
+        const name = document.getElementById('regName').value.trim();
+        const userid = document.getElementById('regUserid').value.trim();
+        const phone = document.getElementById('regPhone').value.trim();
+        const otp = document.getElementById('regOtp').value.trim();
+
+        if (!name || !userid || !phone || !otp) {
+            alert('Please fill all fields');
+            return;
+        }
+        if (otp !== '1234') {
+            alert('Invalid OTP. Use 1234 (demo)');
+            return;
+        }
+
+        // Save registration data
+        const userData = { name, userid, phone, registered: true, status: 'offline' };
+        localStorage.setItem('neonUser', JSON.stringify(userData));
+
+        // Update UI
+        updateStatusBadge(userData);
+        overlay.classList.remove('open');
+
+        // Also update profile panel with new name
+        document.getElementById('profileName').textContent = name;
+        document.getElementById('profilePhone').innerHTML = `<i class="fas fa-phone"></i> ${phone}`;
+
+        alert('✅ Registration successful! Welcome, ' + name);
+    });
+
+    // Check if already registered
+    const saved = localStorage.getItem('neonUser');
+    if (saved) {
+        try {
+            const user = JSON.parse(saved);
+            updateStatusBadge(user);
+            // Update profile
+            document.getElementById('profileName').textContent = user.name || 'Ravi';
+            document.getElementById('profilePhone').innerHTML = `<i class="fas fa-phone"></i> ${user.phone || '+91 9995554443'}`;
+        } catch (e) {}
+    }
+}
+
+function updateStatusBadge(user) {
+    const badge = document.getElementById('statusBadge');
+    const dot = document.getElementById('statusDot');
+    const text = document.getElementById('statusText');
+    if (user && user.registered) {
+        badge.style.display = 'inline-flex';
+        const status = user.status || 'offline';
+        dot.className = 'status-dot-badge ' + (status === 'online' ? 'online' : '');
+        text.textContent = status.charAt(0).toUpperCase() + status.slice(1);
+        // Click on badge to toggle status
+        badge.style.cursor = 'pointer';
+        badge.onclick = function (e) {
+            e.stopPropagation();
+            const current = user.status || 'offline';
+            const newStatus = current === 'online' ? 'offline' : 'online';
+            user.status = newStatus;
+            localStorage.setItem('neonUser', JSON.stringify(user));
+            updateStatusBadge(user);
+        };
+    } else {
+        badge.style.display = 'none';
+    }
+}
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// 13. FAB TOGGLE (from settings)
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+function initFabToggle() {
+    const toggle = document.getElementById('fabToggle');
+    const fab = document.getElementById('fabButton');
+
+    // Load saved state
+    const saved = localStorage.getItem('fabVisible');
+    if (saved !== null) {
+        const visible = saved === 'true';
+        toggle.checked = visible;
+        fab.classList.toggle('hidden', !visible);
+    }
+
+    toggle.addEventListener('change', function () {
+        const visible = this.checked;
+        fab.classList.toggle('hidden', !visible);
+        localStorage.setItem('fabVisible', visible);
+    });
+}
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// 14. UPDATE STATUS BADGE ON THEME CHANGE (re-apply)
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// We'll call updateStatusBadge after registration and on load.
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// 15. INITIALIZATION (add to DOMContentLoaded)
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// Inside the existing DOMContentLoaded, add:
+document.addEventListener('DOMContentLoaded', function () {
+    // ... existing code ...
+    initRegistration();
+    initFabToggle();
+    // Re-apply status if already registered
+    const savedUser = localStorage.getItem('neonUser');
+    if (savedUser) {
+        try {
+            const user = JSON.parse(savedUser);
+            updateStatusBadge(user);
+        } catch (e) {}
+    }
+    // ... rest of existing code ...
+});
