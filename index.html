@@ -23,7 +23,7 @@
     <!-- ===== APP ===== -->
     <div class="app" id="app">
 
-        <!-- LIST VIEW -->
+        <!-- ===== LIST VIEW ===== -->
         <div class="view list-view" id="listView">
             <header class="list-header">
                 <div class="logo" data-depth="0.15">
@@ -38,21 +38,30 @@
 
             <div class="search-wrap" data-depth="0.08">
                 <i class="fas fa-search"></i>
-                <input type="text" placeholder="Search chats..." id="searchInput" />
+                <input type="text" placeholder="Search..." id="searchInput" />
             </div>
 
-            <div class="chat-list" id="chatList">
-                <!-- Rendered by JS -->
+            <!-- Dynamic content area (switches between Chat & Calls) -->
+            <div class="list-content" id="listContent">
+                <!-- Chat List -->
+                <div class="content-panel" id="chatPanel">
+                    <div class="chat-list" id="chatList"></div>
+                </div>
+                <!-- Calls List -->
+                <div class="content-panel" id="callsPanel" style="display:none;">
+                    <div class="call-list" id="callList"></div>
+                </div>
             </div>
 
+            <!-- Footer Tabs -->
             <footer class="list-footer" data-depth="0.05">
-                <div class="tab active"><i class="fas fa-message"></i> Chat</div>
-                <div class="tab"><i class="fas fa-circle-play"></i> Stories</div>
-                <div class="tab"><i class="fas fa-user"></i> Me</div>
+                <div class="tab active" data-tab="chat"><i class="fas fa-message"></i> Chat</div>
+                <div class="tab" data-tab="calls"><i class="fas fa-phone"></i> Calls</div>
+                <div class="tab" data-tab="me"><i class="fas fa-user"></i> Me</div>
             </footer>
         </div>
 
-        <!-- CHAT VIEW (slides in) -->
+        <!-- ===== CHAT VIEW (slides in) ===== -->
         <div class="view chat-view" id="chatView">
             <header class="chat-header" data-depth="0.10">
                 <button class="back-btn" id="backBtn" data-depth="0.15">
@@ -73,9 +82,7 @@
                 </div>
             </header>
 
-            <div class="chat-messages" id="chatMessages">
-                <!-- Rendered by JS -->
-            </div>
+            <div class="chat-messages" id="chatMessages"></div>
 
             <div class="ai-suggestion" id="aiSuggestion" data-depth="0.12">
                 <i class="fas fa-sparkles"></i>
@@ -91,12 +98,12 @@
             </div>
         </div>
 
-        <!-- PROFILE PANEL -->
+        <!-- ===== PROFILE PANEL (My Profile / Contact Profile) ===== -->
         <div class="profile-panel" id="profilePanel">
             <button class="close-profile" id="closeProfileBtn"><i class="fas fa-xmark"></i></button>
             <div class="profile-avatar" id="profileAvatar">RK</div>
             <div class="profile-name" id="profileName">Ravi</div>
-            <div class="profile-phone"><i class="fas fa-phone"></i> +91 9995554443</div>
+            <div class="profile-phone" id="profilePhone"><i class="fas fa-phone"></i> +91 9995554443</div>
             <hr class="divider" />
             <div class="service-grid">
                 <div class="service-item"><i class="fas fa-user-group"></i><span>Friends</span></div>
@@ -108,10 +115,10 @@
                 <button class="msg-btn"><i class="fas fa-message"></i> Message</button>
                 <button class="call-btn2"><i class="fas fa-phone"></i> Call</button>
             </div>
-            <div class="profile-time"><i class="far fa-clock"></i> Last active: 12:30</div>
+            <div class="profile-time" id="profileTime"><i class="far fa-clock"></i> Last active: 12:30</div>
         </div>
 
-        <!-- AI OVERLAY -->
+        <!-- ===== AI OVERLAY ===== -->
         <div class="ai-overlay" id="aiOverlay">
             <div class="ai-card">
                 <div class="ai-header">
