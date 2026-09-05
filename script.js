@@ -22,6 +22,9 @@ document.addEventListener('DOMContentLoaded', function () {
             precision: 1,
         });
     }
+    initFab();
+    initDialpad();
+    initSettings();
 });
 
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -126,7 +129,6 @@ const contacts = [{
     ]
 }, ];
 
-// My own profile data
 const myProfile = {
     name: 'Ravi Kant Gupta',
     phone: '+91 9995554443',
@@ -135,7 +137,6 @@ const myProfile = {
     time: 'Just now'
 };
 
-// Call logs data
 const callLogs = [
     { name: 'Priya', type: 'missed', time: '10:45', img: 'https://i.pravatar.cc/150?img=5' },
     { name: 'Rahul', type: 'incoming', time: '09:30', img: 'https://i.pravatar.cc/150?img=1' },
@@ -188,16 +189,8 @@ function renderCallList() {
     callLogs.forEach(call => {
         const div = document.createElement('div');
         div.className = 'call-item';
-        const iconMap = {
-            missed: 'fa-phone-slash',
-            incoming: 'fa-phone-arrow-down',
-            outgoing: 'fa-phone-arrow-up'
-        };
-        const labelMap = {
-            missed: 'Missed',
-            incoming: 'Incoming',
-            outgoing: 'Outgoing'
-        };
+        const iconMap = { missed: 'fa-phone-slash', incoming: 'fa-phone-arrow-down', outgoing: 'fa-phone-arrow-up' };
+        const labelMap = { missed: 'Missed', incoming: 'Incoming', outgoing: 'Outgoing' };
         div.innerHTML = `
             <div class="call-icon ${call.type}">
                 <i class="fas ${iconMap[call.type]}"></i>
@@ -213,17 +206,15 @@ function renderCallList() {
 }
 
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// 5. TAB SWITCHING (Chat / Calls / Me)
+// 5. TAB SWITCHING
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 function switchTab(tab) {
     currentTab = tab;
     document.querySelectorAll('.list-footer .tab').forEach(el => {
         el.classList.toggle('active', el.dataset.tab === tab);
     });
-
     const chatPanel = document.getElementById('chatPanel');
     const callsPanel = document.getElementById('callsPanel');
-
     if (tab === 'chat') {
         chatPanel.style.display = 'block';
         callsPanel.style.display = 'none';
@@ -232,13 +223,9 @@ function switchTab(tab) {
         chatPanel.style.display = 'none';
         callsPanel.style.display = 'block';
         document.getElementById('searchInput').placeholder = 'Search calls...';
-        renderCallList(); // ensure it's rendered
+        renderCallList();
     } else if (tab === 'me') {
-        // Open My Profile
         openMyProfile();
-        // Reset active tab to chat visually, but keep me highlighted?
-        // Actually, we close profile and go back to chat tab, but we want "Me" to open profile.
-        // We'll keep the tab active as "Me" while profile is open.
         document.querySelectorAll('.list-footer .tab').forEach(el => {
             el.classList.toggle('active', el.dataset.tab === 'me');
         });
@@ -256,11 +243,6 @@ function openChat(id) {
     document.querySelectorAll('.chat-item').forEach(el => {
         el.classList.toggle('active', parseInt(el.dataset.id) === id);
     });
-    // If "Me" tab was active, revert to chat tab after closing profile
-    if (currentTab === 'me') {
-        // switch back to chat tab visually but keep profile open? Actually profile is separate.
-        // We'll just let it be.
-    }
 }
 
 function closeChat() {
@@ -293,7 +275,6 @@ function renderMessages() {
     avatarEl.style.background = contact.color;
     avatarEl.innerHTML = `<img src="${contact.img}" alt="${contact.name}" />`;
 
-    // For contact profile (when opened from chat header)
     document.getElementById('profileAvatar').style.background = contact.color;
     document.getElementById('profileAvatar').innerHTML = `<img src="${contact.img}" alt="${contact.name}" />`;
     document.getElementById('profileName').textContent = contact.name;
@@ -331,7 +312,6 @@ function sendMessage() {
     input.value = '';
     renderMessages();
     renderChatList();
-
     if (text.toLowerCase().includes('ai') || text.toLowerCase().includes('help')) {
         setTimeout(() => {
             const replies = [
@@ -350,7 +330,240 @@ function sendMessage() {
 }
 
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// 10. UI TOGGLES
+// 10. FAB (draggable)
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+function initFab() {
+    const fab = document.getElementById('fabButton');
+    let isDragging = false;
+    let startX, startY, origX, origY;
+
+    const onStart = (e) => {
+        const touch = e.touches ? e.touches[0] : e;
+        isDragging = true;
+        startX = touch.clientX;
+        startY = touch.clientY;
+        const rect = fab.getBoundingClientRect();
+        origX = rect.left;
+        origY = rect.top;
+        fab.style.cursor = 'grabbing';
+        e.preventDefault();
+    };
+
+    const onMove = (e) => {
+        if (!isDragging) return;
+        const touch = e.touches ? e.touches[0] : e;
+        const dx = touch.clientX - startX;
+        const dy = touch.clientY - startY;
+        let newX = origX + dx;
+        let newY = origY + dy;
+        // Constrain to viewport
+        const rect = fab.getBoundingClientRect();
+        const maxX = window.innerWidth - rect.width - 8;
+        const maxY = window.innerHeight - rect.height - 8;
+        newX = Math.max(8, Math.min(newX, maxX));
+        newY = Math.max(8, Math.min(newY, maxY));
+        fab.style.left = newX + 'px';
+        fab.style.top = newY + 'px';
+        fab.style.right = 'auto';
+        fab.style.bottom = 'auto';
+        e.preventDefault();
+    };
+
+    const onEnd = () => {
+        isDragging = false;
+        fab.style.cursor = 'grab';
+    };
+
+    fab.addEventListener('mousedown', onStart);
+    document.addEventListener('mousemove', onMove);
+    document.addEventListener('mouseup', onEnd);
+    fab.addEventListener('touchstart', onStart, { passive: false });
+    document.addEventListener('touchmove', onMove, { passive: false });
+    document.addEventListener('touchend', onEnd);
+
+    // Click to open dialpad (only if not dragged)
+    let clickTimer = null;
+    fab.addEventListener('click', (e) => {
+        if (isDragging) return;
+        if (clickTimer) clearTimeout(clickTimer);
+        clickTimer = setTimeout(() => {
+            document.getElementById('dialpadOverlay').classList.add('open');
+        }, 100);
+    });
+}
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// 11. DIALPAD
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+function initDialpad() {
+    const overlay = document.getElementById('dialpadOverlay');
+    const display = document.getElementById('dialpadDisplay');
+    let number = '';
+
+    // Close
+    document.getElementById('dialpadClose').addEventListener('click', () => {
+        overlay.classList.remove('open');
+        number = '';
+        display.textContent = '';
+    });
+    overlay.addEventListener('click', (e) => {
+        if (e.target === overlay) {
+            overlay.classList.remove('open');
+            number = '';
+            display.textContent = '';
+        }
+    });
+
+    // Number buttons
+    document.querySelectorAll('.dial-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const val = btn.dataset.value;
+            number += val;
+            display.textContent = number;
+        });
+    });
+
+    // Delete
+    document.getElementById('dialDelete').addEventListener('click', () => {
+        number = number.slice(0, -1);
+        display.textContent = number;
+    });
+
+    // Call
+    document.getElementById('dialCall').addEventListener('click', () => {
+        if (number.trim()) {
+            alert(`📞 Calling ${number}... (WebRTC ready)`);
+            overlay.classList.remove('open');
+            number = '';
+            display.textContent = '';
+        } else {
+            alert('Please enter a number');
+        }
+    });
+}
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// 12. SETTINGS (theme, toggles)
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+function initSettings() {
+    // Theme buttons
+    document.querySelectorAll('.theme-btn').forEach(btn => {
+        btn.addEventListener('click', function () {
+            document.querySelectorAll('.theme-btn').forEach(b => b.classList.remove('active'));
+            this.classList.add('active');
+            const theme = this.dataset.theme;
+            applyTheme(theme);
+            localStorage.setItem('neonTheme', theme);
+        });
+    });
+
+    // Load saved theme
+    const savedTheme = localStorage.getItem('neonTheme') || 'dark';
+    document.querySelectorAll('.theme-btn').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.theme === savedTheme);
+    });
+    applyTheme(savedTheme);
+
+    // Toggle switches - save state
+    document.querySelectorAll('.toggle-switch input').forEach(input => {
+        const key = input.id || 'toggle_' + Math.random();
+        const saved = localStorage.getItem(key);
+        if (saved !== null) input.checked = saved === 'true';
+        input.addEventListener('change', function () {
+            localStorage.setItem(this.id || 'toggle_' + Math.random(), this.checked);
+        });
+    });
+
+    // Language select
+    const langSelect = document.querySelector('.lang-select');
+    const savedLang = localStorage.getItem('neonLang') || 'en';
+    if (langSelect) {
+        langSelect.value = savedLang;
+        langSelect.addEventListener('change', function () {
+            localStorage.setItem('neonLang', this.value);
+        });
+    }
+
+    // Logout
+    document.querySelector('.logout-btn')?.addEventListener('click', () => {
+        if (confirm('Logout? (Demo)')) {
+            alert('Logged out! (Demo)');
+            localStorage.clear();
+            location.reload();
+        }
+    });
+}
+
+function applyTheme(theme) {
+    const app = document.getElementById('app');
+    const bg = document.querySelector('.parallax-scene');
+    const root = document.documentElement;
+
+    if (theme === 'light') {
+        app.style.background = 'rgba(240, 242, 247, 0.85)';
+        app.style.backdropFilter = 'blur(28px) saturate(1.6)';
+        document.body.style.background = '#e8ecf1';
+        document.querySelectorAll('.msg.received').forEach(el => {
+            el.style.background = 'rgba(0,0,0,0.04)';
+            el.style.color = '#1a1832';
+        });
+        document.querySelectorAll('.chat-item .info .name').forEach(el => el.style.color = '#1a1832');
+        document.querySelectorAll('.msg-preview').forEach(el => el.style.color = '#4a4a6a');
+        document.querySelectorAll('.chat-name').forEach(el => el.style.color = '#1a1832');
+        document.querySelectorAll('.logo span').forEach(el => {
+            el.style.background = 'linear-gradient(135deg, #6c3bf5, #3b82f6)';
+            el.style.webkitBackgroundClip = 'text';
+            el.style.webkitTextFillColor = 'transparent';
+        });
+        document.querySelectorAll('.setting-item span').forEach(el => el.style.color = '#1a1832');
+        document.querySelectorAll('.settings-header').forEach(el => el.style.color = '#6c3bf5');
+    } else if (theme === 'neon') {
+        app.style.background = 'rgba(20, 8, 50, 0.85)';
+        app.style.backdropFilter = 'blur(28px) saturate(1.8)';
+        document.body.style.background = '#0a0520';
+        document.querySelectorAll('.msg.received').forEach(el => {
+            el.style.background = 'rgba(139, 92, 246, 0.12)';
+            el.style.color = '#d4c4ff';
+            el.style.borderColor = 'rgba(139, 92, 246, 0.2)';
+        });
+        document.querySelectorAll('.chat-item .info .name').forEach(el => el.style.color = '#e4d4ff');
+        document.querySelectorAll('.msg-preview').forEach(el => el.style.color = '#9a8abe');
+        document.querySelectorAll('.chat-name').forEach(el => el.style.color = '#e4d4ff');
+        document.querySelectorAll('.logo span').forEach(el => {
+            el.style.background = 'linear-gradient(135deg, #c084fc, #f472b6)';
+            el.style.webkitBackgroundClip = 'text';
+            el.style.webkitTextFillColor = 'transparent';
+        });
+        document.querySelectorAll('.setting-item span').forEach(el => el.style.color = '#d4c4ff');
+        document.querySelectorAll('.settings-header').forEach(el => el.style.color = '#c084fc');
+        // Add neon glow to fab
+        document.getElementById('fabButton').style.boxShadow = '0 0 40px rgba(192, 132, 252, 0.6), 0 0 80px rgba(192, 132, 252, 0.2)';
+    } else {
+        // Dark (default)
+        app.style.background = 'rgba(12, 10, 28, 0.7)';
+        app.style.backdropFilter = 'blur(28px) saturate(1.6)';
+        document.body.style.background = '#07050e';
+        document.querySelectorAll('.msg.received').forEach(el => {
+            el.style.background = 'rgba(255, 255, 255, 0.06)';
+            el.style.color = '#eef0f5';
+            el.style.borderColor = 'rgba(255, 255, 255, 0.04)';
+        });
+        document.querySelectorAll('.chat-item .info .name').forEach(el => el.style.color = '#f0f2f7');
+        document.querySelectorAll('.msg-preview').forEach(el => el.style.color = '#7a89a8');
+        document.querySelectorAll('.chat-name').forEach(el => el.style.color = '#f0f2f7');
+        document.querySelectorAll('.logo span').forEach(el => {
+            el.style.background = 'linear-gradient(135deg, #a78bfa, #6ee7ff)';
+            el.style.webkitBackgroundClip = 'text';
+            el.style.webkitTextFillColor = 'transparent';
+        });
+        document.querySelectorAll('.setting-item span').forEach(el => el.style.color = '#d0d8ec');
+        document.querySelectorAll('.settings-header').forEach(el => el.style.color = '#a78bfa');
+        document.getElementById('fabButton').style.boxShadow = '0 8px 32px rgba(139, 92, 246, 0.4)';
+    }
+}
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// 13. UI TOGGLES
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 function toggleAiOverlay(open) {
     document.getElementById('aiOverlay').classList.toggle('open', open);
@@ -359,33 +572,24 @@ function toggleAiOverlay(open) {
 function toggleProfile(open) {
     if (!open) {
         document.getElementById('profilePanel').classList.remove('open');
-        // If we opened it via "Me", revert tab to chat
-        if (currentTab === 'me') {
-            // Switch back to chat tab visually
-            switchTab('chat');
-        }
+        if (currentTab === 'me') switchTab('chat');
     } else {
-        // If opening from chat header, it loads contact data via renderMessages already.
-        // We just need to open the panel.
         document.getElementById('profilePanel').classList.add('open');
     }
 }
 
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// 11. EVENT LISTENERS
+// 14. EVENT LISTENERS
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 document.addEventListener('DOMContentLoaded', function () {
     renderChatList();
     renderCallList();
 
-    // Back button
     document.getElementById('backBtn').addEventListener('click', closeChat);
 
-    // Send
     document.getElementById('sendBtn').addEventListener('click', sendMessage);
     document.getElementById('msgInput').addEventListener('keydown', (e) => { if (e.key === 'Enter') sendMessage(); });
 
-    // AI overlay
     document.getElementById('openAiBtn').addEventListener('click', () => toggleAiOverlay(true));
     document.getElementById('openAiFromChat').addEventListener('click', () => toggleAiOverlay(true));
     document.getElementById('closeAiBtn').addEventListener('click', () => toggleAiOverlay(false));
@@ -404,17 +608,12 @@ document.addEventListener('DOMContentLoaded', function () {
         if (e.key === 'Enter') document.getElementById('aiPromptSend').click();
     });
 
-    // Profile panel (from chat header)
-    document.getElementById('openProfileBtn').addEventListener('click', () => {
-        // Render contact data first (already done in renderMessages)
-        toggleProfile(true);
-    });
+    document.getElementById('openProfileBtn').addEventListener('click', () => toggleProfile(true));
     document.getElementById('closeProfileBtn').addEventListener('click', () => toggleProfile(false));
     document.getElementById('profilePanel').addEventListener('click', (e) => {
         if (e.target === e.currentTarget) toggleProfile(false);
     });
 
-    // AI suggestion
     document.getElementById('aiSuggestion').addEventListener('click', () => {
         const contact = contacts.find(c => c.id === activeContactId);
         if (!contact) return;
@@ -426,20 +625,16 @@ document.addEventListener('DOMContentLoaded', function () {
         renderChatList();
     });
 
-    // Voice / Call / Video
     document.querySelector('.voice-btn').addEventListener('click', () => alert('🎤 Voice (WebRTC ready)'));
     document.querySelector('.call-btn').addEventListener('click', () => alert('📞 Call (WebRTC ready)'));
     document.querySelector('.video-btn').addEventListener('click', () => alert('📹 Video (WebRTC ready)'));
 
-    // Footer Tabs
     document.querySelectorAll('.list-footer .tab').forEach(tab => {
         tab.addEventListener('click', function () {
-            const tabName = this.dataset.tab;
-            switchTab(tabName);
+            switchTab(this.dataset.tab);
         });
     });
 
-    // Search filter
     document.getElementById('searchInput').addEventListener('input', function () {
         const q = this.value.toLowerCase();
         if (currentTab === 'chat') {
@@ -455,14 +650,17 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     });
 
-    // Close views with Escape
     document.addEventListener('keydown', (e) => {
         if (e.key === 'Escape') {
             if (document.getElementById('profilePanel').classList.contains('open')) toggleProfile(false);
             else if (document.getElementById('aiOverlay').classList.contains('open')) toggleAiOverlay(false);
             else if (document.getElementById('chatView').classList.contains('open')) closeChat();
+            else if (document.getElementById('dialpadOverlay').classList.contains('open')) {
+                document.getElementById('dialpadOverlay').classList.remove('open');
+                document.getElementById('dialpadDisplay').textContent = '';
+            }
         }
     });
 
-    console.log('🚀 NeonChat · Ultra mobile-friendly · Chat | Calls | Me');
+    console.log('🚀 NeonChat · FAB + Dialpad + Settings + Themes');
 });
