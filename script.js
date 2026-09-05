@@ -11,10 +11,10 @@ document.addEventListener('DOMContentLoaded', function () {
             calibrateY: true,
             invertX: false,
             invertY: false,
-            limitX: 30,
-            limitY: 30,
-            scalarX: 12,
-            scalarY: 12,
+            limitX: 25,
+            limitY: 25,
+            scalarX: 10,
+            scalarY: 10,
             frictionX: 0.1,
             frictionY: 0.1,
             originX: 0.5,
@@ -126,10 +126,29 @@ const contacts = [{
     ]
 }, ];
 
+// My own profile data
+const myProfile = {
+    name: 'Ravi Kant Gupta',
+    phone: '+91 9995554443',
+    img: 'https://i.pravatar.cc/150?img=11',
+    color: 'linear-gradient(135deg,#8b5cf6,#6d28d9)',
+    time: 'Just now'
+};
+
+// Call logs data
+const callLogs = [
+    { name: 'Priya', type: 'missed', time: '10:45', img: 'https://i.pravatar.cc/150?img=5' },
+    { name: 'Rahul', type: 'incoming', time: '09:30', img: 'https://i.pravatar.cc/150?img=1' },
+    { name: 'Kunal', type: 'outgoing', time: 'Yesterday', img: 'https://i.pravatar.cc/150?img=20' },
+    { name: 'Tushar', type: 'incoming', time: 'Yesterday', img: 'https://i.pravatar.cc/150?img=12' },
+    { name: 'Parul', type: 'missed', time: 'Yesterday', img: 'https://i.pravatar.cc/150?img=25' },
+];
+
 let activeContactId = 4;
+let currentTab = 'chat';
 
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// 3. RENDER LIST
+// 3. RENDER CHAT LIST
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 function renderChatList() {
     const container = document.getElementById('chatList');
@@ -161,36 +180,97 @@ function renderChatList() {
 }
 
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// 4. OPEN / CLOSE CHAT (with animations)
+// 4. RENDER CALL LIST
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+function renderCallList() {
+    const container = document.getElementById('callList');
+    container.innerHTML = '';
+    callLogs.forEach(call => {
+        const div = document.createElement('div');
+        div.className = 'call-item';
+        const iconMap = {
+            missed: 'fa-phone-slash',
+            incoming: 'fa-phone-arrow-down',
+            outgoing: 'fa-phone-arrow-up'
+        };
+        const labelMap = {
+            missed: 'Missed',
+            incoming: 'Incoming',
+            outgoing: 'Outgoing'
+        };
+        div.innerHTML = `
+            <div class="call-icon ${call.type}">
+                <i class="fas ${iconMap[call.type]}"></i>
+            </div>
+            <div class="call-info">
+                <div class="call-name">${call.name}</div>
+                <div class="call-detail">${labelMap[call.type]} · ${call.time}</div>
+            </div>
+            <div class="call-time">${call.time}</div>
+        `;
+        container.appendChild(div);
+    });
+}
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// 5. TAB SWITCHING (Chat / Calls / Me)
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+function switchTab(tab) {
+    currentTab = tab;
+    document.querySelectorAll('.list-footer .tab').forEach(el => {
+        el.classList.toggle('active', el.dataset.tab === tab);
+    });
+
+    const chatPanel = document.getElementById('chatPanel');
+    const callsPanel = document.getElementById('callsPanel');
+
+    if (tab === 'chat') {
+        chatPanel.style.display = 'block';
+        callsPanel.style.display = 'none';
+        document.getElementById('searchInput').placeholder = 'Search chats...';
+    } else if (tab === 'calls') {
+        chatPanel.style.display = 'none';
+        callsPanel.style.display = 'block';
+        document.getElementById('searchInput').placeholder = 'Search calls...';
+        renderCallList(); // ensure it's rendered
+    } else if (tab === 'me') {
+        // Open My Profile
+        openMyProfile();
+        // Reset active tab to chat visually, but keep me highlighted?
+        // Actually, we close profile and go back to chat tab, but we want "Me" to open profile.
+        // We'll keep the tab active as "Me" while profile is open.
+        document.querySelectorAll('.list-footer .tab').forEach(el => {
+            el.classList.toggle('active', el.dataset.tab === 'me');
+        });
+    }
+}
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// 6. OPEN / CLOSE CHAT
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 function openChat(id) {
     activeContactId = id;
     renderMessages();
-    const chatView = document.getElementById('chatView');
-    const listView = document.getElementById('listView');
-
-    // Shrink list for depth
-    listView.classList.add('shrink');
-    // Slide in chat
-    chatView.classList.add('open');
-
-    // Update active state in list
+    document.getElementById('chatView').classList.add('open');
+    document.getElementById('listView').classList.add('shrink');
     document.querySelectorAll('.chat-item').forEach(el => {
         el.classList.toggle('active', parseInt(el.dataset.id) === id);
     });
+    // If "Me" tab was active, revert to chat tab after closing profile
+    if (currentTab === 'me') {
+        // switch back to chat tab visually but keep profile open? Actually profile is separate.
+        // We'll just let it be.
+    }
 }
 
 function closeChat() {
-    const chatView = document.getElementById('chatView');
-    const listView = document.getElementById('listView');
-
-    chatView.classList.remove('open');
-    listView.classList.remove('shrink');
-    renderChatList(); // refresh unread counts
+    document.getElementById('chatView').classList.remove('open');
+    document.getElementById('listView').classList.remove('shrink');
+    renderChatList();
 }
 
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// 5. RENDER MESSAGES
+// 7. RENDER MESSAGES
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 function renderMessages() {
     const container = document.getElementById('chatMessages');
@@ -201,29 +281,41 @@ function renderMessages() {
         const div = document.createElement('div');
         const isSent = msg.from === 'me';
         div.className = `msg ${isSent ? 'sent' : 'received'}`;
-        // stagger animation by index
         div.style.animationDelay = `${index * 0.04}s`;
         div.innerHTML = `${msg.text}<span class="time-tag">${msg.time}</span>`;
         container.appendChild(div);
     });
     container.scrollTop = container.scrollHeight;
 
-    // Update header
     document.getElementById('chatName').textContent = contact.name;
     document.getElementById('chatStatus').textContent = `${contact.online ? 'Online' : 'Offline'} · ${contact.time}`;
     const avatarEl = document.getElementById('chatAvatar');
     avatarEl.style.background = contact.color;
     avatarEl.innerHTML = `<img src="${contact.img}" alt="${contact.name}" />`;
 
-    // Profile panel
-    const pAvatar = document.getElementById('profileAvatar');
-    pAvatar.style.background = contact.color;
-    pAvatar.innerHTML = `<img src="${contact.img}" alt="${contact.name}" />`;
+    // For contact profile (when opened from chat header)
+    document.getElementById('profileAvatar').style.background = contact.color;
+    document.getElementById('profileAvatar').innerHTML = `<img src="${contact.img}" alt="${contact.name}" />`;
     document.getElementById('profileName').textContent = contact.name;
+    document.getElementById('profilePhone').innerHTML = `<i class="fas fa-phone"></i> +91 9995554443`;
+    document.getElementById('profileTime').innerHTML = `<i class="far fa-clock"></i> Last active: ${contact.time}`;
 }
 
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// 6. SEND MESSAGE
+// 8. OPEN MY PROFILE
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+function openMyProfile() {
+    const panel = document.getElementById('profilePanel');
+    document.getElementById('profileAvatar').style.background = myProfile.color;
+    document.getElementById('profileAvatar').innerHTML = `<img src="${myProfile.img}" alt="${myProfile.name}" />`;
+    document.getElementById('profileName').textContent = myProfile.name;
+    document.getElementById('profilePhone').innerHTML = `<i class="fas fa-phone"></i> ${myProfile.phone}`;
+    document.getElementById('profileTime').innerHTML = `<i class="far fa-clock"></i> Last active: ${myProfile.time}`;
+    panel.classList.add('open');
+}
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// 9. SEND MESSAGE
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 function sendMessage() {
     const input = document.getElementById('msgInput');
@@ -240,7 +332,6 @@ function sendMessage() {
     renderMessages();
     renderChatList();
 
-    // Auto AI reply
     if (text.toLowerCase().includes('ai') || text.toLowerCase().includes('help')) {
         setTimeout(() => {
             const replies = [
@@ -259,33 +350,48 @@ function sendMessage() {
 }
 
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// 7. UI TOGGLES
+// 10. UI TOGGLES
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 function toggleAiOverlay(open) {
     document.getElementById('aiOverlay').classList.toggle('open', open);
 }
+
 function toggleProfile(open) {
-    document.getElementById('profilePanel').classList.toggle('open', open);
+    if (!open) {
+        document.getElementById('profilePanel').classList.remove('open');
+        // If we opened it via "Me", revert tab to chat
+        if (currentTab === 'me') {
+            // Switch back to chat tab visually
+            switchTab('chat');
+        }
+    } else {
+        // If opening from chat header, it loads contact data via renderMessages already.
+        // We just need to open the panel.
+        document.getElementById('profilePanel').classList.add('open');
+    }
 }
 
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// 8. EVENT LISTENERS
+// 11. EVENT LISTENERS
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 document.addEventListener('DOMContentLoaded', function () {
     renderChatList();
+    renderCallList();
 
+    // Back button
     document.getElementById('backBtn').addEventListener('click', closeChat);
 
+    // Send
     document.getElementById('sendBtn').addEventListener('click', sendMessage);
     document.getElementById('msgInput').addEventListener('keydown', (e) => { if (e.key === 'Enter') sendMessage(); });
 
+    // AI overlay
     document.getElementById('openAiBtn').addEventListener('click', () => toggleAiOverlay(true));
     document.getElementById('openAiFromChat').addEventListener('click', () => toggleAiOverlay(true));
     document.getElementById('closeAiBtn').addEventListener('click', () => toggleAiOverlay(false));
     document.getElementById('aiOverlay').addEventListener('click', (e) => {
         if (e.target === e.currentTarget) toggleAiOverlay(false);
     });
-
     document.getElementById('aiPromptSend').addEventListener('click', () => {
         const input = document.getElementById('aiPromptInput');
         const val = input.value.trim();
@@ -298,12 +404,17 @@ document.addEventListener('DOMContentLoaded', function () {
         if (e.key === 'Enter') document.getElementById('aiPromptSend').click();
     });
 
-    document.getElementById('openProfileBtn').addEventListener('click', () => toggleProfile(true));
+    // Profile panel (from chat header)
+    document.getElementById('openProfileBtn').addEventListener('click', () => {
+        // Render contact data first (already done in renderMessages)
+        toggleProfile(true);
+    });
     document.getElementById('closeProfileBtn').addEventListener('click', () => toggleProfile(false));
     document.getElementById('profilePanel').addEventListener('click', (e) => {
         if (e.target === e.currentTarget) toggleProfile(false);
     });
 
+    // AI suggestion
     document.getElementById('aiSuggestion').addEventListener('click', () => {
         const contact = contacts.find(c => c.id === activeContactId);
         if (!contact) return;
@@ -315,28 +426,36 @@ document.addEventListener('DOMContentLoaded', function () {
         renderChatList();
     });
 
+    // Voice / Call / Video
     document.querySelector('.voice-btn').addEventListener('click', () => alert('🎤 Voice (WebRTC ready)'));
     document.querySelector('.call-btn').addEventListener('click', () => alert('📞 Call (WebRTC ready)'));
     document.querySelector('.video-btn').addEventListener('click', () => alert('📹 Video (WebRTC ready)'));
 
+    // Footer Tabs
     document.querySelectorAll('.list-footer .tab').forEach(tab => {
         tab.addEventListener('click', function () {
-            document.querySelectorAll('.list-footer .tab').forEach(t => t.classList.remove('active'));
-            this.classList.add('active');
-            const label = this.textContent.trim();
-            if (label.includes('Stories')) alert('📸 Stories coming soon!');
-            else if (label.includes('Me')) alert('👤 Profile settings coming soon!');
+            const tabName = this.dataset.tab;
+            switchTab(tabName);
         });
     });
 
+    // Search filter
     document.getElementById('searchInput').addEventListener('input', function () {
         const q = this.value.toLowerCase();
-        document.querySelectorAll('.chat-item').forEach(item => {
-            const name = item.querySelector('.name')?.textContent?.toLowerCase() || '';
-            item.style.display = name.includes(q) ? 'flex' : 'none';
-        });
+        if (currentTab === 'chat') {
+            document.querySelectorAll('.chat-item').forEach(item => {
+                const name = item.querySelector('.name')?.textContent?.toLowerCase() || '';
+                item.style.display = name.includes(q) ? 'flex' : 'none';
+            });
+        } else if (currentTab === 'calls') {
+            document.querySelectorAll('.call-item').forEach(item => {
+                const name = item.querySelector('.call-name')?.textContent?.toLowerCase() || '';
+                item.style.display = name.includes(q) ? 'flex' : 'none';
+            });
+        }
     });
 
+    // Close views with Escape
     document.addEventListener('keydown', (e) => {
         if (e.key === 'Escape') {
             if (document.getElementById('profilePanel').classList.contains('open')) toggleProfile(false);
@@ -345,5 +464,5 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     });
 
-    console.log('🚀 NeonChat · Single‑pane · Spring animations · Parallax active');
+    console.log('🚀 NeonChat · Ultra mobile-friendly · Chat | Calls | Me');
 });
