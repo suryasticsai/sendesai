@@ -31,9 +31,9 @@
     ============================================================ -->
     <div class="app" id="app">
 
-        <!-- SIDEBAR -->
-        <aside class="sidebar" id="sidebar">
-            <div class="sidebar-header">
+        <!-- ===== LIST VIEW (sidebar only) ===== -->
+        <div class="view list-view" id="listView">
+            <header class="list-header">
                 <div class="logo" data-depth="0.15">
                     <i class="fas fa-bolt"></i>
                     <span>NeonChat</span>
@@ -46,7 +46,7 @@
                         <i class="fas fa-ellipsis-vertical"></i>
                     </button>
                 </div>
-            </div>
+            </header>
 
             <div class="search-wrap" data-depth="0.08">
                 <i class="fas fa-search"></i>
@@ -57,16 +57,19 @@
                 <!-- Rendered by JavaScript -->
             </div>
 
-            <div class="sidebar-footer" data-depth="0.05">
+            <footer class="list-footer" data-depth="0.05">
                 <div class="tab active"><i class="fas fa-message"></i> Chat</div>
                 <div class="tab"><i class="fas fa-circle-play"></i> Stories</div>
                 <div class="tab"><i class="fas fa-user"></i> Me</div>
-            </div>
-        </aside>
+            </footer>
+        </div>
 
-        <!-- MAIN CHAT -->
-        <main class="main-chat" id="mainChat">
+        <!-- ===== CHAT VIEW (conversation) ===== -->
+        <div class="view chat-view" id="chatView">
             <header class="chat-header" data-depth="0.10">
+                <button class="back-btn" id="backBtn" data-depth="0.15">
+                    <i class="fas fa-arrow-left"></i>
+                </button>
                 <div class="left">
                     <div class="avatar-sm" id="chatAvatar">TK</div>
                     <div class="chat-name">
@@ -100,9 +103,9 @@
                     <button class="send-btn" id="sendBtn" data-depth="0.20"><i class="fas fa-paper-plane"></i></button>
                 </div>
             </div>
-        </main>
+        </div>
 
-        <!-- PROFILE PANEL (slide-in) -->
+        <!-- ===== PROFILE PANEL (slide-in) ===== -->
         <div class="profile-panel" id="profilePanel">
             <button class="close-profile" id="closeProfileBtn"><i class="fas fa-xmark"></i></button>
             <div class="profile-avatar" id="profileAvatar">RK</div>
@@ -122,7 +125,7 @@
             <div class="profile-time"><i class="far fa-clock"></i> Last active: 12:30</div>
         </div>
 
-        <!-- AI OVERLAY -->
+        <!-- ===== AI OVERLAY ===== -->
         <div class="ai-overlay" id="aiOverlay">
             <div class="ai-card" data-depth="0.10">
                 <div class="ai-header">
@@ -146,7 +149,6 @@
 
     </div>
 
-    <!-- External JavaScript -->
     <script src="script.js"></script>
 </body>
 </html>
