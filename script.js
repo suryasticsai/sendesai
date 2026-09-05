@@ -25,6 +25,19 @@ document.addEventListener('DOMContentLoaded', function () {
     initFab();
     initDialpad();
     initSettings();
+    initRegistration();
+    initFabToggle();
+    // Re-apply status if already registered
+    const savedUser = localStorage.getItem('neonUser');
+    if (savedUser) {
+        try {
+            const user = JSON.parse(savedUser);
+            updateStatusBadge(user);
+            // Update profile
+            document.getElementById('profileName').textContent = user.name || 'Ravi';
+            document.getElementById('profilePhone').innerHTML = `<i class="fas fa-phone"></i> ${user.phone || '+91 9995554443'}`;
+        } catch (e) {}
+    }
 });
 
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -356,7 +369,6 @@ function initFab() {
         const dy = touch.clientY - startY;
         let newX = origX + dx;
         let newY = origY + dy;
-        // Constrain to viewport
         const rect = fab.getBoundingClientRect();
         const maxX = window.innerWidth - rect.width - 8;
         const maxY = window.innerHeight - rect.height - 8;
@@ -381,7 +393,6 @@ function initFab() {
     document.addEventListener('touchmove', onMove, { passive: false });
     document.addEventListener('touchend', onEnd);
 
-    // Click to open dialpad (only if not dragged)
     let clickTimer = null;
     fab.addEventListener('click', (e) => {
         if (isDragging) return;
@@ -400,7 +411,6 @@ function initDialpad() {
     const display = document.getElementById('dialpadDisplay');
     let number = '';
 
-    // Close
     document.getElementById('dialpadClose').addEventListener('click', () => {
         overlay.classList.remove('open');
         number = '';
@@ -414,7 +424,6 @@ function initDialpad() {
         }
     });
 
-    // Number buttons
     document.querySelectorAll('.dial-btn').forEach(btn => {
         btn.addEventListener('click', () => {
             const val = btn.dataset.value;
@@ -423,13 +432,11 @@ function initDialpad() {
         });
     });
 
-    // Delete
     document.getElementById('dialDelete').addEventListener('click', () => {
         number = number.slice(0, -1);
         display.textContent = number;
     });
 
-    // Call
     document.getElementById('dialCall').addEventListener('click', () => {
         if (number.trim()) {
             alert(`📞 Calling ${number}... (WebRTC ready)`);
@@ -457,7 +464,6 @@ function initSettings() {
         });
     });
 
-    // Load saved theme
     const savedTheme = localStorage.getItem('neonTheme') || 'dark';
     document.querySelectorAll('.theme-btn').forEach(btn => {
         btn.classList.toggle('active', btn.dataset.theme === savedTheme);
@@ -496,13 +502,12 @@ function initSettings() {
 
 function applyTheme(theme) {
     const app = document.getElementById('app');
-    const bg = document.querySelector('.parallax-scene');
-    const root = document.documentElement;
+    const body = document.body;
 
     if (theme === 'light') {
         app.style.background = 'rgba(240, 242, 247, 0.85)';
         app.style.backdropFilter = 'blur(28px) saturate(1.6)';
-        document.body.style.background = '#e8ecf1';
+        body.style.background = '#e8ecf1';
         document.querySelectorAll('.msg.received').forEach(el => {
             el.style.background = 'rgba(0,0,0,0.04)';
             el.style.color = '#1a1832';
@@ -517,10 +522,11 @@ function applyTheme(theme) {
         });
         document.querySelectorAll('.setting-item span').forEach(el => el.style.color = '#1a1832');
         document.querySelectorAll('.settings-header').forEach(el => el.style.color = '#6c3bf5');
+        document.getElementById('fabButton').style.boxShadow = '0 8px 32px rgba(108, 59, 245, 0.3)';
     } else if (theme === 'neon') {
         app.style.background = 'rgba(20, 8, 50, 0.85)';
         app.style.backdropFilter = 'blur(28px) saturate(1.8)';
-        document.body.style.background = '#0a0520';
+        body.style.background = '#0a0520';
         document.querySelectorAll('.msg.received').forEach(el => {
             el.style.background = 'rgba(139, 92, 246, 0.12)';
             el.style.color = '#d4c4ff';
@@ -536,13 +542,12 @@ function applyTheme(theme) {
         });
         document.querySelectorAll('.setting-item span').forEach(el => el.style.color = '#d4c4ff');
         document.querySelectorAll('.settings-header').forEach(el => el.style.color = '#c084fc');
-        // Add neon glow to fab
         document.getElementById('fabButton').style.boxShadow = '0 0 40px rgba(192, 132, 252, 0.6), 0 0 80px rgba(192, 132, 252, 0.2)';
     } else {
         // Dark (default)
         app.style.background = 'rgba(12, 10, 28, 0.7)';
         app.style.backdropFilter = 'blur(28px) saturate(1.6)';
-        document.body.style.background = '#07050e';
+        body.style.background = '#07050e';
         document.querySelectorAll('.msg.received').forEach(el => {
             el.style.background = 'rgba(255, 255, 255, 0.06)';
             el.style.color = '#eef0f5';
@@ -563,7 +568,115 @@ function applyTheme(theme) {
 }
 
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// 13. UI TOGGLES
+// 13. REGISTRATION
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+function initRegistration() {
+    const overlay = document.getElementById('regOverlay');
+    const openBtn = document.getElementById('openRegForm');
+    const closeBtn = document.getElementById('regClose');
+    const submitBtn = document.getElementById('regSubmit');
+    const otpSend = document.getElementById('otpSend');
+
+    // Open
+    openBtn.addEventListener('click', () => overlay.classList.add('open'));
+
+    // Close
+    closeBtn.addEventListener('click', () => overlay.classList.remove('open'));
+    overlay.addEventListener('click', (e) => {
+        if (e.target === overlay) overlay.classList.remove('open');
+    });
+
+    // OTP simulation
+    otpSend.addEventListener('click', () => {
+        const phone = document.getElementById('regPhone').value.trim();
+        if (!phone) {
+            alert('Please enter phone number first');
+            return;
+        }
+        alert(`📱 OTP sent to ${phone} (Demo: 1234)`);
+        document.getElementById('regOtp').value = '1234';
+    });
+
+    // Register
+    submitBtn.addEventListener('click', () => {
+        const name = document.getElementById('regName').value.trim();
+        const userid = document.getElementById('regUserid').value.trim();
+        const phone = document.getElementById('regPhone').value.trim();
+        const otp = document.getElementById('regOtp').value.trim();
+
+        if (!name || !userid || !phone || !otp) {
+            alert('Please fill all fields');
+            return;
+        }
+        if (otp !== '1234') {
+            alert('Invalid OTP. Use 1234 (demo)');
+            return;
+        }
+
+        // Save registration data
+        const userData = { name, userid, phone, registered: true, status: 'offline' };
+        localStorage.setItem('neonUser', JSON.stringify(userData));
+
+        // Update UI
+        updateStatusBadge(userData);
+        overlay.classList.remove('open');
+
+        // Also update profile panel with new name
+        document.getElementById('profileName').textContent = name;
+        document.getElementById('profilePhone').innerHTML = `<i class="fas fa-phone"></i> ${phone}`;
+
+        alert('✅ Registration successful! Welcome, ' + name);
+    });
+}
+
+function updateStatusBadge(user) {
+    const badge = document.getElementById('statusBadge');
+    const dot = document.getElementById('statusDot');
+    const text = document.getElementById('statusText');
+    if (user && user.registered) {
+        badge.style.display = 'inline-flex';
+        const status = user.status || 'offline';
+        dot.className = 'status-dot-badge ' + (status === 'online' ? 'online' : '');
+        text.textContent = status.charAt(0).toUpperCase() + status.slice(1);
+        // Click on badge to toggle status
+        badge.style.cursor = 'pointer';
+        badge.onclick = function (e) {
+            e.stopPropagation();
+            const current = user.status || 'offline';
+            const newStatus = current === 'online' ? 'offline' : 'online';
+            user.status = newStatus;
+            localStorage.setItem('neonUser', JSON.stringify(user));
+            updateStatusBadge(user);
+        };
+    } else {
+        badge.style.display = 'none';
+    }
+}
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// 14. FAB TOGGLE (from settings)
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+function initFabToggle() {
+    const toggle = document.getElementById('fabToggle');
+    const fab = document.getElementById('fabButton');
+
+    // Load saved state
+    const saved = localStorage.getItem('fabVisible');
+    if (saved !== null) {
+        const visible = saved === 'true';
+        toggle.checked = visible;
+        fab.classList.toggle('hidden', !visible);
+    }
+
+    toggle.addEventListener('change', function () {
+        const visible = this.checked;
+        fab.classList.toggle('hidden', !visible);
+        localStorage.setItem('fabVisible', visible);
+    });
+}
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// 15. UI TOGGLES
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 function toggleAiOverlay(open) {
     document.getElementById('aiOverlay').classList.toggle('open', open);
@@ -579,7 +692,7 @@ function toggleProfile(open) {
 }
 
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// 14. EVENT LISTENERS
+// 16. EVENT LISTENERS
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 document.addEventListener('DOMContentLoaded', function () {
     renderChatList();
@@ -658,153 +771,11 @@ document.addEventListener('DOMContentLoaded', function () {
             else if (document.getElementById('dialpadOverlay').classList.contains('open')) {
                 document.getElementById('dialpadOverlay').classList.remove('open');
                 document.getElementById('dialpadDisplay').textContent = '';
+            } else if (document.getElementById('regOverlay').classList.contains('open')) {
+                document.getElementById('regOverlay').classList.remove('open');
             }
         }
     });
 
-    console.log('🚀 NeonChat · FAB + Dialpad + Settings + Themes');
-});
-
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// 12. REGISTRATION
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-function initRegistration() {
-    const overlay = document.getElementById('regOverlay');
-    const openBtn = document.getElementById('openRegForm');
-    const closeBtn = document.getElementById('regClose');
-    const submitBtn = document.getElementById('regSubmit');
-    const otpSend = document.getElementById('otpSend');
-
-    // Open
-    openBtn.addEventListener('click', () => overlay.classList.add('open'));
-
-    // Close
-    closeBtn.addEventListener('click', () => overlay.classList.remove('open'));
-    overlay.addEventListener('click', (e) => {
-        if (e.target === overlay) overlay.classList.remove('open');
-    });
-
-    // OTP simulation
-    otpSend.addEventListener('click', () => {
-        const phone = document.getElementById('regPhone').value.trim();
-        if (!phone) {
-            alert('Please enter phone number first');
-            return;
-        }
-        alert(`📱 OTP sent to ${phone} (Demo: 1234)`);
-        document.getElementById('regOtp').value = '1234';
-    });
-
-    // Register
-    submitBtn.addEventListener('click', () => {
-        const name = document.getElementById('regName').value.trim();
-        const userid = document.getElementById('regUserid').value.trim();
-        const phone = document.getElementById('regPhone').value.trim();
-        const otp = document.getElementById('regOtp').value.trim();
-
-        if (!name || !userid || !phone || !otp) {
-            alert('Please fill all fields');
-            return;
-        }
-        if (otp !== '1234') {
-            alert('Invalid OTP. Use 1234 (demo)');
-            return;
-        }
-
-        // Save registration data
-        const userData = { name, userid, phone, registered: true, status: 'offline' };
-        localStorage.setItem('neonUser', JSON.stringify(userData));
-
-        // Update UI
-        updateStatusBadge(userData);
-        overlay.classList.remove('open');
-
-        // Also update profile panel with new name
-        document.getElementById('profileName').textContent = name;
-        document.getElementById('profilePhone').innerHTML = `<i class="fas fa-phone"></i> ${phone}`;
-
-        alert('✅ Registration successful! Welcome, ' + name);
-    });
-
-    // Check if already registered
-    const saved = localStorage.getItem('neonUser');
-    if (saved) {
-        try {
-            const user = JSON.parse(saved);
-            updateStatusBadge(user);
-            // Update profile
-            document.getElementById('profileName').textContent = user.name || 'Ravi';
-            document.getElementById('profilePhone').innerHTML = `<i class="fas fa-phone"></i> ${user.phone || '+91 9995554443'}`;
-        } catch (e) {}
-    }
-}
-
-function updateStatusBadge(user) {
-    const badge = document.getElementById('statusBadge');
-    const dot = document.getElementById('statusDot');
-    const text = document.getElementById('statusText');
-    if (user && user.registered) {
-        badge.style.display = 'inline-flex';
-        const status = user.status || 'offline';
-        dot.className = 'status-dot-badge ' + (status === 'online' ? 'online' : '');
-        text.textContent = status.charAt(0).toUpperCase() + status.slice(1);
-        // Click on badge to toggle status
-        badge.style.cursor = 'pointer';
-        badge.onclick = function (e) {
-            e.stopPropagation();
-            const current = user.status || 'offline';
-            const newStatus = current === 'online' ? 'offline' : 'online';
-            user.status = newStatus;
-            localStorage.setItem('neonUser', JSON.stringify(user));
-            updateStatusBadge(user);
-        };
-    } else {
-        badge.style.display = 'none';
-    }
-}
-
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// 13. FAB TOGGLE (from settings)
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-function initFabToggle() {
-    const toggle = document.getElementById('fabToggle');
-    const fab = document.getElementById('fabButton');
-
-    // Load saved state
-    const saved = localStorage.getItem('fabVisible');
-    if (saved !== null) {
-        const visible = saved === 'true';
-        toggle.checked = visible;
-        fab.classList.toggle('hidden', !visible);
-    }
-
-    toggle.addEventListener('change', function () {
-        const visible = this.checked;
-        fab.classList.toggle('hidden', !visible);
-        localStorage.setItem('fabVisible', visible);
-    });
-}
-
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// 14. UPDATE STATUS BADGE ON THEME CHANGE (re-apply)
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// We'll call updateStatusBadge after registration and on load.
-
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// 15. INITIALIZATION (add to DOMContentLoaded)
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// Inside the existing DOMContentLoaded, add:
-document.addEventListener('DOMContentLoaded', function () {
-    // ... existing code ...
-    initRegistration();
-    initFabToggle();
-    // Re-apply status if already registered
-    const savedUser = localStorage.getItem('neonUser');
-    if (savedUser) {
-        try {
-            const user = JSON.parse(savedUser);
-            updateStatusBadge(user);
-        } catch (e) {}
-    }
-    // ... rest of existing code ...
+    console.log('🚀 NeonChat · Complete · Registration · Status · FAB · Dialpad · Themes');
 });
