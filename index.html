@@ -29,6 +29,11 @@
                 <div class="logo" data-depth="0.15">
                     <i class="fas fa-bolt"></i>
                     <span>NeonChat</span>
+                    <!-- Status badge (appears after registration) -->
+                    <span class="status-badge" id="statusBadge" style="display:none;">
+                        <span class="status-dot-badge" id="statusDot"></span>
+                        <span id="statusText">Offline</span>
+                    </span>
                 </div>
                 <div class="actions">
                     <button class="ai-btn" id="openAiBtn" data-depth="0.25"><i class="fas fa-brain"></i></button>
@@ -107,6 +112,7 @@
                     <i class="fas fa-cog"></i> Preferences
                 </div>
 
+                <!-- Theme -->
                 <div class="setting-item">
                     <span><i class="fas fa-palette"></i> Theme</span>
                     <div class="theme-options">
@@ -116,6 +122,16 @@
                     </div>
                 </div>
 
+                <!-- FAB Visibility -->
+                <div class="setting-item">
+                    <span><i class="fas fa-phone"></i> Show FAB</span>
+                    <label class="toggle-switch">
+                        <input type="checkbox" checked id="fabToggle" />
+                        <span class="toggle-slider"></span>
+                    </label>
+                </div>
+
+                <!-- Notifications -->
                 <div class="setting-item">
                     <span><i class="fas fa-bell"></i> Notifications</span>
                     <label class="toggle-switch">
@@ -124,6 +140,7 @@
                     </label>
                 </div>
 
+                <!-- Sound -->
                 <div class="setting-item">
                     <span><i class="fas fa-volume-up"></i> Sound</span>
                     <label class="toggle-switch">
@@ -132,14 +149,13 @@
                     </label>
                 </div>
 
-                <div class="setting-item">
-                    <span><i class="fas fa-undo-alt"></i> Auto-archive</span>
-                    <label class="toggle-switch">
-                        <input type="checkbox" id="archiveToggle" />
-                        <span class="toggle-slider"></span>
-                    </label>
+                <!-- Registration Link -->
+                <div class="setting-item registration-link">
+                    <span><i class="fas fa-user-plus"></i> Registration</span>
+                    <button class="reg-btn" id="openRegForm"><i class="fas fa-arrow-right"></i></button>
                 </div>
 
+                <!-- Language -->
                 <div class="setting-item">
                     <span><i class="fas fa-language"></i> Language</span>
                     <select class="lang-select">
@@ -153,6 +169,38 @@
             </div>
 
             <div class="profile-time" id="profileTime"><i class="far fa-clock"></i> Last active: 12:30</div>
+        </div>
+
+        <!-- ===== REGISTRATION FORM (overlay) ===== -->
+        <div class="registration-overlay" id="regOverlay">
+            <div class="registration-form">
+                <div class="reg-header">
+                    <h3><i class="fas fa-user-plus"></i> Register</h3>
+                    <button class="reg-close" id="regClose"><i class="fas fa-times"></i></button>
+                </div>
+                <div class="reg-body">
+                    <div class="reg-field">
+                        <label>Full Name</label>
+                        <input type="text" id="regName" placeholder="Your name" />
+                    </div>
+                    <div class="reg-field">
+                        <label>User ID</label>
+                        <input type="text" id="regUserid" placeholder="Choose a unique ID" />
+                    </div>
+                    <div class="reg-field">
+                        <label>Phone Number</label>
+                        <input type="tel" id="regPhone" placeholder="+91 9876543210" />
+                    </div>
+                    <div class="reg-field">
+                        <label>OTP</label>
+                        <div class="otp-group">
+                            <input type="text" id="regOtp" placeholder="Enter OTP" />
+                            <button class="otp-send" id="otpSend">Send OTP</button>
+                        </div>
+                    </div>
+                    <button class="reg-submit" id="regSubmit">Register</button>
+                </div>
+            </div>
         </div>
 
         <!-- ===== AI OVERLAY ===== -->
@@ -178,12 +226,10 @@
         </div>
 
         <!-- ===== DIALPAD (FAB + overlay) ===== -->
-        <!-- FAB Button (draggable) -->
         <div class="fab-button" id="fabButton">
             <i class="fas fa-phone"></i>
         </div>
 
-        <!-- Dialpad Overlay -->
         <div class="dialpad-overlay" id="dialpadOverlay">
             <div class="dialpad">
                 <div class="dialpad-header">
