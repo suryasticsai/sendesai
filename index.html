@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>NeonChat · AI Messenger</title>
+    <!-- Google Font -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet" />
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+    <!-- Parallax.js (wagerfield) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/parallax.js/1.5.0/parallax.min.js">
+    </script>
+    <!-- External CSS -->
+    <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+    <!-- ============================================================
+    PARALLAX BACKGROUND (layered images)
+    ============================================================ -->
+    <div class="parallax-scene" data-parallax="scroll" data-relative-input="true">
+        <div class="bg-layer layer-1" data-depth="0.10"></div>
+        <div class="bg-layer layer-2" data-depth="0.20"></div>
+        <div class="bg-layer layer-3" data-depth="0.30"></div>
+        <div class="bg-layer layer-4" data-depth="0.05"></div>
+    </div>
+
+    <!-- ============================================================
+    APP CONTAINER
+    ============================================================ -->
+    <div class="app" id="app">
+
+        <!-- SIDEBAR -->
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <div class="logo" data-depth="0.15">
+                    <i class="fas fa-bolt"></i>
+                    <span>NeonChat</span>
+                </div>
+                <div class="actions">
+                    <button class="ai-btn" id="openAiBtn" data-depth="0.25" title="AI Studio">
+                        <i class="fas fa-brain"></i>
+                    </button>
+                    <button data-depth="0.20" title="Settings">
+                        <i class="fas fa-ellipsis-vertical"></i>
+                    </button>
+                </div>
+            </div>
+
+            <div class="search-wrap" data-depth="0.08">
+                <i class="fas fa-search"></i>
+                <input type="text" placeholder="Search chats..." id="searchInput" />
+            </div>
+
+            <div class="chat-list" id="chatList">
+                <!-- Rendered by JavaScript -->
+            </div>
+
+            <div class="sidebar-footer" data-depth="0.05">
+                <div class="tab active"><i class="fas fa-message"></i> Chat</div>
+                <div class="tab"><i class="fas fa-circle-play"></i> Stories</div>
+                <div class="tab"><i class="fas fa-user"></i> Me</div>
+            </div>
+        </aside>
+
+        <!-- MAIN CHAT -->
+        <main class="main-chat" id="mainChat">
+            <header class="chat-header" data-depth="0.10">
+                <div class="left">
+                    <div class="avatar-sm" id="chatAvatar">TK</div>
+                    <div class="chat-name">
+                        <span id="chatName">Tushar</span>
+                        <small id="chatStatus">Online · 2 min ago</small>
+                    </div>
+                </div>
+                <div class="right">
+                    <button class="call-btn" data-depth="0.15"><i class="fas fa-phone"></i></button>
+                    <button class="video-btn" data-depth="0.20"><i class="fas fa-video"></i></button>
+                    <button class="ai-assist-btn" id="openAiFromChat" data-depth="0.25">
+                        <i class="fas fa-sparkles"></i>
+                    </button>
+                    <button id="openProfileBtn" data-depth="0.15"><i class="fas fa-user-circle"></i></button>
+                </div>
+            </header>
+
+            <div class="chat-messages" id="chatMessages">
+                <!-- Rendered by JavaScript -->
+            </div>
+
+            <div class="ai-suggestion" id="aiSuggestion" data-depth="0.12">
+                <i class="fas fa-sparkles"></i>
+                <span>AI: Summarize this conversation</span>
+            </div>
+
+            <div class="chat-input" data-depth="0.08">
+                <input type="text" id="msgInput" placeholder="Type a message..." />
+                <div class="input-actions">
+                    <button class="voice-btn" data-depth="0.15"><i class="fas fa-microphone"></i></button>
+                    <button class="send-btn" id="sendBtn" data-depth="0.20"><i class="fas fa-paper-plane"></i></button>
+                </div>
+            </div>
+        </main>
+
+        <!-- PROFILE PANEL (slide-in) -->
+        <div class="profile-panel" id="profilePanel">
+            <button class="close-profile" id="closeProfileBtn"><i class="fas fa-xmark"></i></button>
+            <div class="profile-avatar" id="profileAvatar">RK</div>
+            <div class="profile-name" id="profileName">Ravi Kant Gupta</div>
+            <div class="profile-phone"><i class="fas fa-phone"></i> +91 9995554443</div>
+            <hr class="divider" />
+            <div class="service-grid">
+                <div class="service-item" data-depth="0.10"><i class="fas fa-user-group"></i><span>Friends</span></div>
+                <div class="service-item" data-depth="0.15"><i class="fas fa-wallet"></i><span>Wallet</span></div>
+                <div class="service-item" data-depth="0.20"><i class="fas fa-sticky-note"></i><span>Stickers</span></div>
+                <div class="service-item" data-depth="0.10"><i class="fas fa-store"></i><span>Services</span></div>
+            </div>
+            <div class="profile-actions">
+                <button class="msg-btn"><i class="fas fa-message"></i> Message</button>
+                <button class="call-btn2"><i class="fas fa-phone"></i> Call</button>
+            </div>
+            <div class="profile-time"><i class="far fa-clock"></i> Last active: 12:30</div>
+        </div>
+
+        <!-- AI OVERLAY -->
+        <div class="ai-overlay" id="aiOverlay">
+            <div class="ai-card" data-depth="0.10">
+                <div class="ai-header">
+                    <h2><i class="fas fa-brain"></i> AI Studio</h2>
+                    <button class="close-ai" id="closeAiBtn"><i class="fas fa-xmark"></i></button>
+                </div>
+                <p class="ai-subtitle">Supercharge your chat with AI</p>
+                <div class="ai-features">
+                    <div class="feat" data-depth="0.15"><i class="fas fa-robot"></i><span>Smart Replies</span><small>AI suggestions</small></div>
+                    <div class="feat" data-depth="0.20"><i class="fas fa-language"></i><span>Translate</span><small>Real-time</small></div>
+                    <div class="feat" data-depth="0.10"><i class="fas fa-file-lines"></i><span>Summarize</span><small>Chat summary</small></div>
+                    <div class="feat" data-depth="0.25"><i class="fas fa-pen-fancy"></i><span>Rewrite</span><small>Improve text</small></div>
+                </div>
+                <div class="ai-prompt">
+                    <input type="text" placeholder="Ask AI anything..." id="aiPromptInput" />
+                    <button id="aiPromptSend"><i class="fas fa-arrow-right"></i> Go</button>
+                </div>
+                <div class="ai-footer"><i class="fas fa-shield-alt"></i> End-to-end encrypted · AI runs locally</div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- External JavaScript -->
+    <script src="script.js"></script>
+</body>
+</html>
