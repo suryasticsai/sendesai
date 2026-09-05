@@ -1,5 +1,5 @@
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// 1. PARALLAX INIT (wagerfield)
+// 1. PARALLAX
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 document.addEventListener('DOMContentLoaded', function () {
     const scene = document.querySelector('.parallax-scene');
@@ -25,7 +25,7 @@ document.addEventListener('DOMContentLoaded', function () {
 });
 
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// 2. CONTACTS DATA (with images)
+// 2. DATA
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 const contacts = [{
     id: 1,
@@ -126,21 +126,17 @@ const contacts = [{
     ]
 }, ];
 
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// 3. STATE
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 let activeContactId = 4;
-let currentContact = contacts.find(c => c.id === activeContactId);
 
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// 4. RENDER FUNCTIONS
+// 3. RENDER LIST
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 function renderChatList() {
     const container = document.getElementById('chatList');
     container.innerHTML = '';
     contacts.forEach(c => {
         const div = document.createElement('div');
-        div.className = `chat-item`;
+        div.className = 'chat-item';
         div.dataset.id = c.id;
         div.innerHTML = `
             <div class="avatar" style="background:${c.color};">
@@ -164,22 +160,55 @@ function renderChatList() {
     });
 }
 
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// 4. OPEN / CLOSE CHAT (with animations)
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+function openChat(id) {
+    activeContactId = id;
+    renderMessages();
+    const chatView = document.getElementById('chatView');
+    const listView = document.getElementById('listView');
+
+    // Shrink list for depth
+    listView.classList.add('shrink');
+    // Slide in chat
+    chatView.classList.add('open');
+
+    // Update active state in list
+    document.querySelectorAll('.chat-item').forEach(el => {
+        el.classList.toggle('active', parseInt(el.dataset.id) === id);
+    });
+}
+
+function closeChat() {
+    const chatView = document.getElementById('chatView');
+    const listView = document.getElementById('listView');
+
+    chatView.classList.remove('open');
+    listView.classList.remove('shrink');
+    renderChatList(); // refresh unread counts
+}
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// 5. RENDER MESSAGES
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 function renderMessages() {
     const container = document.getElementById('chatMessages');
     const contact = contacts.find(c => c.id === activeContactId);
     if (!contact) return;
-    currentContact = contact;
     container.innerHTML = '';
-    contact.messages.forEach((msg) => {
+    contact.messages.forEach((msg, index) => {
         const div = document.createElement('div');
         const isSent = msg.from === 'me';
         div.className = `msg ${isSent ? 'sent' : 'received'}`;
+        // stagger animation by index
+        div.style.animationDelay = `${index * 0.04}s`;
         div.innerHTML = `${msg.text}<span class="time-tag">${msg.time}</span>`;
         container.appendChild(div);
     });
     container.scrollTop = container.scrollHeight;
 
-    // Update chat header
+    // Update header
     document.getElementById('chatName').textContent = contact.name;
     document.getElementById('chatStatus').textContent = `${contact.online ? 'Online' : 'Offline'} · ${contact.time}`;
     const avatarEl = document.getElementById('chatAvatar');
@@ -191,25 +220,6 @@ function renderMessages() {
     pAvatar.style.background = contact.color;
     pAvatar.innerHTML = `<img src="${contact.img}" alt="${contact.name}" />`;
     document.getElementById('profileName').textContent = contact.name;
-}
-
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// 5. VIEW NAVIGATION
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-function openChat(id) {
-    activeContactId = id;
-    renderMessages();
-    document.getElementById('chatView').classList.add('open');
-    // update active state in list (optional)
-    document.querySelectorAll('.chat-item').forEach(el => {
-        el.classList.toggle('active', parseInt(el.dataset.id) === id);
-    });
-}
-
-function closeChat() {
-    document.getElementById('chatView').classList.remove('open');
-    // re-render list to update unread etc.
-    renderChatList();
 }
 
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -249,12 +259,11 @@ function sendMessage() {
 }
 
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// 7. UI CONTROLS (AI overlay, Profile panel)
+// 7. UI TOGGLES
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 function toggleAiOverlay(open) {
     document.getElementById('aiOverlay').classList.toggle('open', open);
 }
-
 function toggleProfile(open) {
     document.getElementById('profilePanel').classList.toggle('open', open);
 }
@@ -265,25 +274,23 @@ function toggleProfile(open) {
 document.addEventListener('DOMContentLoaded', function () {
     renderChatList();
 
-    // Back button
     document.getElementById('backBtn').addEventListener('click', closeChat);
 
-    // Send
     document.getElementById('sendBtn').addEventListener('click', sendMessage);
     document.getElementById('msgInput').addEventListener('keydown', (e) => { if (e.key === 'Enter') sendMessage(); });
 
-    // AI overlay
     document.getElementById('openAiBtn').addEventListener('click', () => toggleAiOverlay(true));
     document.getElementById('openAiFromChat').addEventListener('click', () => toggleAiOverlay(true));
     document.getElementById('closeAiBtn').addEventListener('click', () => toggleAiOverlay(false));
     document.getElementById('aiOverlay').addEventListener('click', (e) => {
         if (e.target === e.currentTarget) toggleAiOverlay(false);
     });
+
     document.getElementById('aiPromptSend').addEventListener('click', () => {
         const input = document.getElementById('aiPromptInput');
         const val = input.value.trim();
         if (!val) return;
-        alert('🧠 AI: "' + val + '"\n\n(Simulated response — real AI coming soon!)');
+        alert('🧠 AI: "' + val + '"\n\n(Simulated response)');
         input.value = '';
         toggleAiOverlay(false);
     });
@@ -291,14 +298,12 @@ document.addEventListener('DOMContentLoaded', function () {
         if (e.key === 'Enter') document.getElementById('aiPromptSend').click();
     });
 
-    // Profile panel
     document.getElementById('openProfileBtn').addEventListener('click', () => toggleProfile(true));
     document.getElementById('closeProfileBtn').addEventListener('click', () => toggleProfile(false));
     document.getElementById('profilePanel').addEventListener('click', (e) => {
         if (e.target === e.currentTarget) toggleProfile(false);
     });
 
-    // AI suggestion chip
     document.getElementById('aiSuggestion').addEventListener('click', () => {
         const contact = contacts.find(c => c.id === activeContactId);
         if (!contact) return;
@@ -310,23 +315,20 @@ document.addEventListener('DOMContentLoaded', function () {
         renderChatList();
     });
 
-    // Voice / Call / Video placeholders
-    document.querySelector('.voice-btn').addEventListener('click', () => alert('🎤 Voice recording (WebRTC ready)'));
-    document.querySelector('.call-btn').addEventListener('click', () => alert('📞 Voice call (WebRTC ready)'));
-    document.querySelector('.video-btn').addEventListener('click', () => alert('📹 Video call (WebRTC ready)'));
+    document.querySelector('.voice-btn').addEventListener('click', () => alert('🎤 Voice (WebRTC ready)'));
+    document.querySelector('.call-btn').addEventListener('click', () => alert('📞 Call (WebRTC ready)'));
+    document.querySelector('.video-btn').addEventListener('click', () => alert('📹 Video (WebRTC ready)'));
 
-    // Bottom tabs
     document.querySelectorAll('.list-footer .tab').forEach(tab => {
         tab.addEventListener('click', function () {
             document.querySelectorAll('.list-footer .tab').forEach(t => t.classList.remove('active'));
             this.classList.add('active');
             const label = this.textContent.trim();
-            if (label.includes('Stories')) alert('📸 Stories view (coming soon!)');
-            else if (label.includes('Me')) alert('👤 Profile & settings (coming soon!)');
+            if (label.includes('Stories')) alert('📸 Stories coming soon!');
+            else if (label.includes('Me')) alert('👤 Profile settings coming soon!');
         });
     });
 
-    // Search filter
     document.getElementById('searchInput').addEventListener('input', function () {
         const q = this.value.toLowerCase();
         document.querySelectorAll('.chat-item').forEach(item => {
@@ -335,7 +337,6 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     });
 
-    // Close views with Escape
     document.addEventListener('keydown', (e) => {
         if (e.key === 'Escape') {
             if (document.getElementById('profilePanel').classList.contains('open')) toggleProfile(false);
@@ -344,5 +345,5 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     });
 
-    console.log('🚀 NeonChat vivid · Parallax active · Mobile-first');
+    console.log('🚀 NeonChat · Single‑pane · Spring animations · Parallax active');
 });
