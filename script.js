@@ -22,22 +22,31 @@ document.addEventListener('DOMContentLoaded', function () {
             precision: 1,
         });
     }
+
+    // Initialize all features
     initFab();
     initDialpad();
     initSettings();
     initRegistration();
     initFabToggle();
-    // Re-apply status if already registered
+
+    // Load saved user status
     const savedUser = localStorage.getItem('neonUser');
     if (savedUser) {
         try {
             const user = JSON.parse(savedUser);
             updateStatusBadge(user);
-            // Update profile
             document.getElementById('profileName').textContent = user.name || 'Ravi';
             document.getElementById('profilePhone').innerHTML = `<i class="fas fa-phone"></i> ${user.phone || '+91 9995554443'}`;
         } catch (e) {}
     }
+
+    // Render initial data
+    renderChatList();
+    renderCallList();
+
+    // Set up event listeners for UI interactions
+    setupEventListeners();
 });
 
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -162,7 +171,7 @@ let activeContactId = 4;
 let currentTab = 'chat';
 
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// 3. RENDER CHAT LIST
+// 3. RENDER FUNCTIONS
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 function renderChatList() {
     const container = document.getElementById('chatList');
@@ -191,11 +200,10 @@ function renderChatList() {
         div.addEventListener('click', () => openChat(c.id));
         container.appendChild(div);
     });
+    // Re-apply theme after rendering (so colors update)
+    applyTheme(localStorage.getItem('neonTheme') || 'dark');
 }
 
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// 4. RENDER CALL LIST
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 function renderCallList() {
     const container = document.getElementById('callList');
     container.innerHTML = '';
@@ -216,10 +224,42 @@ function renderCallList() {
         `;
         container.appendChild(div);
     });
+    applyTheme(localStorage.getItem('neonTheme') || 'dark');
+}
+
+function renderMessages() {
+    const container = document.getElementById('chatMessages');
+    const contact = contacts.find(c => c.id === activeContactId);
+    if (!contact) return;
+    container.innerHTML = '';
+    contact.messages.forEach((msg, index) => {
+        const div = document.createElement('div');
+        const isSent = msg.from === 'me';
+        div.className = `msg ${isSent ? 'sent' : 'received'}`;
+        div.style.animationDelay = `${index * 0.04}s`;
+        div.innerHTML = `${msg.text}<span class="time-tag">${msg.time}</span>`;
+        container.appendChild(div);
+    });
+    container.scrollTop = container.scrollHeight;
+
+    document.getElementById('chatName').textContent = contact.name;
+    document.getElementById('chatStatus').textContent = `${contact.online ? 'Online' : 'Offline'} · ${contact.time}`;
+    const avatarEl = document.getElementById('chatAvatar');
+    avatarEl.style.background = contact.color;
+    avatarEl.innerHTML = `<img src="${contact.img}" alt="${contact.name}" />`;
+
+    // Update profile panel (for contact)
+    document.getElementById('profileAvatar').style.background = contact.color;
+    document.getElementById('profileAvatar').innerHTML = `<img src="${contact.img}" alt="${contact.name}" />`;
+    document.getElementById('profileName').textContent = contact.name;
+    document.getElementById('profilePhone').innerHTML = `<i class="fas fa-phone"></i> +91 9995554443`;
+    document.getElementById('profileTime').innerHTML = `<i class="far fa-clock"></i> Last active: ${contact.time}`;
+
+    applyTheme(localStorage.getItem('neonTheme') || 'dark');
 }
 
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// 5. TAB SWITCHING
+// 4. NAVIGATION
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 function switchTab(tab) {
     currentTab = tab;
@@ -245,9 +285,6 @@ function switchTab(tab) {
     }
 }
 
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// 6. OPEN / CLOSE CHAT
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 function openChat(id) {
     activeContactId = id;
     renderMessages();
@@ -256,6 +293,7 @@ function openChat(id) {
     document.querySelectorAll('.chat-item').forEach(el => {
         el.classList.toggle('active', parseInt(el.dataset.id) === id);
     });
+    applyTheme(localStorage.getItem('neonTheme') || 'dark');
 }
 
 function closeChat() {
@@ -264,40 +302,6 @@ function closeChat() {
     renderChatList();
 }
 
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// 7. RENDER MESSAGES
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-function renderMessages() {
-    const container = document.getElementById('chatMessages');
-    const contact = contacts.find(c => c.id === activeContactId);
-    if (!contact) return;
-    container.innerHTML = '';
-    contact.messages.forEach((msg, index) => {
-        const div = document.createElement('div');
-        const isSent = msg.from === 'me';
-        div.className = `msg ${isSent ? 'sent' : 'received'}`;
-        div.style.animationDelay = `${index * 0.04}s`;
-        div.innerHTML = `${msg.text}<span class="time-tag">${msg.time}</span>`;
-        container.appendChild(div);
-    });
-    container.scrollTop = container.scrollHeight;
-
-    document.getElementById('chatName').textContent = contact.name;
-    document.getElementById('chatStatus').textContent = `${contact.online ? 'Online' : 'Offline'} · ${contact.time}`;
-    const avatarEl = document.getElementById('chatAvatar');
-    avatarEl.style.background = contact.color;
-    avatarEl.innerHTML = `<img src="${contact.img}" alt="${contact.name}" />`;
-
-    document.getElementById('profileAvatar').style.background = contact.color;
-    document.getElementById('profileAvatar').innerHTML = `<img src="${contact.img}" alt="${contact.name}" />`;
-    document.getElementById('profileName').textContent = contact.name;
-    document.getElementById('profilePhone').innerHTML = `<i class="fas fa-phone"></i> +91 9995554443`;
-    document.getElementById('profileTime').innerHTML = `<i class="far fa-clock"></i> Last active: ${contact.time}`;
-}
-
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// 8. OPEN MY PROFILE
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 function openMyProfile() {
     const panel = document.getElementById('profilePanel');
     document.getElementById('profileAvatar').style.background = myProfile.color;
@@ -306,10 +310,20 @@ function openMyProfile() {
     document.getElementById('profilePhone').innerHTML = `<i class="fas fa-phone"></i> ${myProfile.phone}`;
     document.getElementById('profileTime').innerHTML = `<i class="far fa-clock"></i> Last active: ${myProfile.time}`;
     panel.classList.add('open');
+    applyTheme(localStorage.getItem('neonTheme') || 'dark');
+}
+
+function toggleProfile(open) {
+    if (!open) {
+        document.getElementById('profilePanel').classList.remove('open');
+        if (currentTab === 'me') switchTab('chat');
+    } else {
+        document.getElementById('profilePanel').classList.add('open');
+    }
 }
 
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// 9. SEND MESSAGE
+// 5. SEND MESSAGE
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 function sendMessage() {
     const input = document.getElementById('msgInput');
@@ -343,7 +357,7 @@ function sendMessage() {
 }
 
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// 10. FAB (draggable)
+// 6. FAB (draggable)
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 function initFab() {
     const fab = document.getElementById('fabButton');
@@ -404,7 +418,7 @@ function initFab() {
 }
 
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// 11. DIALPAD
+// 7. DIALPAD
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 function initDialpad() {
     const overlay = document.getElementById('dialpadOverlay');
@@ -450,7 +464,7 @@ function initDialpad() {
 }
 
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// 12. SETTINGS (theme, toggles)
+// 8. SETTINGS (Theme, Toggles, etc.)
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 function initSettings() {
     // Theme buttons
@@ -464,6 +478,7 @@ function initSettings() {
         });
     });
 
+    // Load saved theme
     const savedTheme = localStorage.getItem('neonTheme') || 'dark';
     document.querySelectorAll('.theme-btn').forEach(btn => {
         btn.classList.toggle('active', btn.dataset.theme === savedTheme);
@@ -504,13 +519,20 @@ function applyTheme(theme) {
     const app = document.getElementById('app');
     const body = document.body;
 
+    // Reset any inline styles that might conflict
+    app.style.background = '';
+    app.style.backdropFilter = '';
+    body.style.background = '';
+
     if (theme === 'light') {
         app.style.background = 'rgba(240, 242, 247, 0.85)';
         app.style.backdropFilter = 'blur(28px) saturate(1.6)';
         body.style.background = '#e8ecf1';
+        // Apply to all dynamic elements
         document.querySelectorAll('.msg.received').forEach(el => {
             el.style.background = 'rgba(0,0,0,0.04)';
             el.style.color = '#1a1832';
+            el.style.borderColor = 'rgba(0,0,0,0.08)';
         });
         document.querySelectorAll('.chat-item .info .name').forEach(el => el.style.color = '#1a1832');
         document.querySelectorAll('.msg-preview').forEach(el => el.style.color = '#4a4a6a');
@@ -523,6 +545,13 @@ function applyTheme(theme) {
         document.querySelectorAll('.setting-item span').forEach(el => el.style.color = '#1a1832');
         document.querySelectorAll('.settings-header').forEach(el => el.style.color = '#6c3bf5');
         document.getElementById('fabButton').style.boxShadow = '0 8px 32px rgba(108, 59, 245, 0.3)';
+        document.querySelectorAll('.status-badge').forEach(el => {
+            el.style.color = '#1a1832';
+            el.style.background = 'rgba(0,0,0,0.06)';
+        });
+        document.querySelectorAll('.status-dot-badge').forEach(el => {
+            el.style.border = '1px solid rgba(0,0,0,0.1)';
+        });
     } else if (theme === 'neon') {
         app.style.background = 'rgba(20, 8, 50, 0.85)';
         app.style.backdropFilter = 'blur(28px) saturate(1.8)';
@@ -543,6 +572,13 @@ function applyTheme(theme) {
         document.querySelectorAll('.setting-item span').forEach(el => el.style.color = '#d4c4ff');
         document.querySelectorAll('.settings-header').forEach(el => el.style.color = '#c084fc');
         document.getElementById('fabButton').style.boxShadow = '0 0 40px rgba(192, 132, 252, 0.6), 0 0 80px rgba(192, 132, 252, 0.2)';
+        document.querySelectorAll('.status-badge').forEach(el => {
+            el.style.color = '#d4c4ff';
+            el.style.background = 'rgba(139, 92, 246, 0.15)';
+        });
+        document.querySelectorAll('.status-dot-badge').forEach(el => {
+            el.style.border = '1px solid rgba(192, 132, 252, 0.3)';
+        });
     } else {
         // Dark (default)
         app.style.background = 'rgba(12, 10, 28, 0.7)';
@@ -564,11 +600,18 @@ function applyTheme(theme) {
         document.querySelectorAll('.setting-item span').forEach(el => el.style.color = '#d0d8ec');
         document.querySelectorAll('.settings-header').forEach(el => el.style.color = '#a78bfa');
         document.getElementById('fabButton').style.boxShadow = '0 8px 32px rgba(139, 92, 246, 0.4)';
+        document.querySelectorAll('.status-badge').forEach(el => {
+            el.style.color = '#7a89a8';
+            el.style.background = 'rgba(255,255,255,0.06)';
+        });
+        document.querySelectorAll('.status-dot-badge').forEach(el => {
+            el.style.border = '1px solid rgba(255,255,255,0.1)';
+        });
     }
 }
 
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// 13. REGISTRATION
+// 9. REGISTRATION
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 function initRegistration() {
     const overlay = document.getElementById('regOverlay');
@@ -577,16 +620,14 @@ function initRegistration() {
     const submitBtn = document.getElementById('regSubmit');
     const otpSend = document.getElementById('otpSend');
 
-    // Open
-    openBtn.addEventListener('click', () => overlay.classList.add('open'));
+    if (!openBtn || !closeBtn || !submitBtn || !otpSend) return;
 
-    // Close
+    openBtn.addEventListener('click', () => overlay.classList.add('open'));
     closeBtn.addEventListener('click', () => overlay.classList.remove('open'));
     overlay.addEventListener('click', (e) => {
         if (e.target === overlay) overlay.classList.remove('open');
     });
 
-    // OTP simulation
     otpSend.addEventListener('click', () => {
         const phone = document.getElementById('regPhone').value.trim();
         if (!phone) {
@@ -597,7 +638,6 @@ function initRegistration() {
         document.getElementById('regOtp').value = '1234';
     });
 
-    // Register
     submitBtn.addEventListener('click', () => {
         const name = document.getElementById('regName').value.trim();
         const userid = document.getElementById('regUserid').value.trim();
@@ -613,15 +653,12 @@ function initRegistration() {
             return;
         }
 
-        // Save registration data
         const userData = { name, userid, phone, registered: true, status: 'offline' };
         localStorage.setItem('neonUser', JSON.stringify(userData));
 
-        // Update UI
         updateStatusBadge(userData);
         overlay.classList.remove('open');
 
-        // Also update profile panel with new name
         document.getElementById('profileName').textContent = name;
         document.getElementById('profilePhone').innerHTML = `<i class="fas fa-phone"></i> ${phone}`;
 
@@ -638,7 +675,6 @@ function updateStatusBadge(user) {
         const status = user.status || 'offline';
         dot.className = 'status-dot-badge ' + (status === 'online' ? 'online' : '');
         text.textContent = status.charAt(0).toUpperCase() + status.slice(1);
-        // Click on badge to toggle status
         badge.style.cursor = 'pointer';
         badge.onclick = function (e) {
             e.stopPropagation();
@@ -648,19 +684,20 @@ function updateStatusBadge(user) {
             localStorage.setItem('neonUser', JSON.stringify(user));
             updateStatusBadge(user);
         };
+        applyTheme(localStorage.getItem('neonTheme') || 'dark');
     } else {
         badge.style.display = 'none';
     }
 }
 
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// 14. FAB TOGGLE (from settings)
+// 10. FAB TOGGLE
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 function initFabToggle() {
     const toggle = document.getElementById('fabToggle');
     const fab = document.getElementById('fabButton');
+    if (!toggle || !fab) return;
 
-    // Load saved state
     const saved = localStorage.getItem('fabVisible');
     if (saved !== null) {
         const visible = saved === 'true';
@@ -676,39 +713,34 @@ function initFabToggle() {
 }
 
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// 15. UI TOGGLES
+// 11. TOGGLES FOR AI / PROFILE
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 function toggleAiOverlay(open) {
     document.getElementById('aiOverlay').classList.toggle('open', open);
 }
 
-function toggleProfile(open) {
-    if (!open) {
-        document.getElementById('profilePanel').classList.remove('open');
-        if (currentTab === 'me') switchTab('chat');
-    } else {
-        document.getElementById('profilePanel').classList.add('open');
-    }
-}
-
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// 16. EVENT LISTENERS
+// 12. EVENT LISTENERS (UI)
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-document.addEventListener('DOMContentLoaded', function () {
-    renderChatList();
-    renderCallList();
-
+function setupEventListeners() {
+    // Back button
     document.getElementById('backBtn').addEventListener('click', closeChat);
 
+    // Send button
     document.getElementById('sendBtn').addEventListener('click', sendMessage);
-    document.getElementById('msgInput').addEventListener('keydown', (e) => { if (e.key === 'Enter') sendMessage(); });
+    document.getElementById('msgInput').addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') sendMessage();
+    });
 
+    // AI overlays
     document.getElementById('openAiBtn').addEventListener('click', () => toggleAiOverlay(true));
     document.getElementById('openAiFromChat').addEventListener('click', () => toggleAiOverlay(true));
     document.getElementById('closeAiBtn').addEventListener('click', () => toggleAiOverlay(false));
     document.getElementById('aiOverlay').addEventListener('click', (e) => {
         if (e.target === e.currentTarget) toggleAiOverlay(false);
     });
+
+    // AI prompt
     document.getElementById('aiPromptSend').addEventListener('click', () => {
         const input = document.getElementById('aiPromptInput');
         const val = input.value.trim();
@@ -721,12 +753,14 @@ document.addEventListener('DOMContentLoaded', function () {
         if (e.key === 'Enter') document.getElementById('aiPromptSend').click();
     });
 
+    // Profile panel
     document.getElementById('openProfileBtn').addEventListener('click', () => toggleProfile(true));
     document.getElementById('closeProfileBtn').addEventListener('click', () => toggleProfile(false));
     document.getElementById('profilePanel').addEventListener('click', (e) => {
         if (e.target === e.currentTarget) toggleProfile(false);
     });
 
+    // AI suggestion chip
     document.getElementById('aiSuggestion').addEventListener('click', () => {
         const contact = contacts.find(c => c.id === activeContactId);
         if (!contact) return;
@@ -738,16 +772,19 @@ document.addEventListener('DOMContentLoaded', function () {
         renderChatList();
     });
 
+    // Voice / Call / Video placeholders
     document.querySelector('.voice-btn').addEventListener('click', () => alert('🎤 Voice (WebRTC ready)'));
     document.querySelector('.call-btn').addEventListener('click', () => alert('📞 Call (WebRTC ready)'));
     document.querySelector('.video-btn').addEventListener('click', () => alert('📹 Video (WebRTC ready)'));
 
+    // Footer tabs
     document.querySelectorAll('.list-footer .tab').forEach(tab => {
         tab.addEventListener('click', function () {
             switchTab(this.dataset.tab);
         });
     });
 
+    // Search filter
     document.getElementById('searchInput').addEventListener('input', function () {
         const q = this.value.toLowerCase();
         if (currentTab === 'chat') {
@@ -763,6 +800,7 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     });
 
+    // Escape key handler
     document.addEventListener('keydown', (e) => {
         if (e.key === 'Escape') {
             if (document.getElementById('profilePanel').classList.contains('open')) toggleProfile(false);
@@ -777,5 +815,5 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     });
 
-    console.log('🚀 NeonChat · Complete · Registration · Status · FAB · Dialpad · Themes');
-});
+    console.log('🚀 NeonChat · All settings fixed and working');
+}
