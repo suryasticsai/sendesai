@@ -1247,3 +1247,200 @@ body {
         padding: 10px 12px;
     }
 }
+
+/* ─── STATUS BADGE in header ─── */
+.logo {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+.status-badge {
+    font-size: 10px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    background: rgba(255, 255, 255, 0.06);
+    padding: 2px 8px 2px 6px;
+    border-radius: 20px;
+    color: #7a89a8;
+    margin-left: 4px;
+    border: 1px solid rgba(255, 255, 255, 0.04);
+}
+.status-dot-badge {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    display: inline-block;
+    background: #64748b; /* offline default */
+}
+.status-dot-badge.online {
+    background: #22c55e;
+    box-shadow: 0 0 8px rgba(34, 197, 94, 0.5);
+}
+#statusText {
+    font-weight: 500;
+    letter-spacing: 0.3px;
+}
+
+/* ─── REGISTRATION OVERLAY ─── */
+.registration-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(8, 6, 20, 0.8);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    z-index: 30;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.35s ease;
+    border-radius: inherit;
+}
+.registration-overlay.open {
+    opacity: 1;
+    pointer-events: auto;
+}
+.registration-form {
+    background: rgba(18, 16, 36, 0.92);
+    border-radius: 28px;
+    padding: 24px 20px 20px 20px;
+    width: 92%;
+    max-width: 380px;
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    box-shadow: 0 40px 80px rgba(0, 0, 0, 0.7);
+    transform: scale(0.92) translateY(16px);
+    transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.registration-overlay.open .registration-form {
+    transform: scale(1) translateY(0);
+}
+.reg-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+}
+.reg-header h3 {
+    font-size: 18px;
+    font-weight: 700;
+    color: #f0f2f7;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+.reg-header h3 i {
+    color: #8b5cf6;
+}
+.reg-close {
+    background: rgba(255, 255, 255, 0.04);
+    border: none;
+    color: #a5b3d0;
+    width: 32px;
+    height: 32px;
+    border-radius: 10px;
+    font-size: 16px;
+    cursor: pointer;
+}
+.reg-close:hover {
+    background: rgba(255, 255, 255, 0.08);
+}
+.reg-body {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+.reg-field label {
+    font-size: 12px;
+    font-weight: 500;
+    color: #7a89a8;
+    display: block;
+    margin-bottom: 4px;
+}
+.reg-field input {
+    width: 100%;
+    padding: 10px 14px;
+    border-radius: 14px;
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    background: rgba(255, 255, 255, 0.04);
+    color: #eef0f5;
+    font-size: 14px;
+    outline: none;
+    font-family: 'Inter', sans-serif;
+}
+.reg-field input:focus {
+    border-color: rgba(139, 92, 246, 0.3);
+}
+.otp-group {
+    display: flex;
+    gap: 8px;
+}
+.otp-group input {
+    flex: 1;
+}
+.otp-send {
+    padding: 10px 16px;
+    border: none;
+    border-radius: 14px;
+    background: rgba(139, 92, 246, 0.15);
+    color: #a78bfa;
+    font-weight: 600;
+    font-size: 12px;
+    cursor: pointer;
+    transition: all 0.25s;
+    font-family: 'Inter', sans-serif;
+    white-space: nowrap;
+}
+.otp-send:hover {
+    background: rgba(139, 92, 246, 0.25);
+}
+.reg-submit {
+    padding: 12px;
+    border: none;
+    border-radius: 16px;
+    background: linear-gradient(135deg, #7c3aed, #6d28d9);
+    color: #fff;
+    font-weight: 700;
+    font-size: 16px;
+    cursor: pointer;
+    transition: all 0.25s;
+    font-family: 'Inter', sans-serif;
+    margin-top: 4px;
+}
+.reg-submit:hover {
+    background: linear-gradient(135deg, #8b5cf6, #7c3aed);
+    transform: scale(1.02);
+}
+.reg-submit:active {
+    transform: scale(0.96);
+}
+
+/* ─── REGISTRATION LINK in settings ─── */
+.registration-link .reg-btn {
+    background: rgba(139, 92, 246, 0.12);
+    border: none;
+    color: #a78bfa;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    cursor: pointer;
+    transition: all 0.25s;
+    font-size: 14px;
+}
+.registration-link .reg-btn:hover {
+    background: rgba(139, 92, 246, 0.25);
+    transform: scale(1.1);
+}
+
+/* ─── FAB HIDDEN STATE ─── */
+.fab-button.hidden {
+    display: none !important;
+}
+
+/* ─── STATUS TOGGLE (online/offline) in settings? Not needed, but we can add a small toggle later if wanted ─── */
+/* For now, we'll just show the badge after registration, and user can toggle online via a click on the badge? We'll add a click to toggle status in JS. */
