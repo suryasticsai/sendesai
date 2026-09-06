@@ -139,10 +139,14 @@ body {
     font-weight: 700;
     font-size: 20px;
 }
-.logo i {
-    color: #8b5cf6;
-    font-size: 26px;
-    filter: drop-shadow(0 0 20px rgba(139, 92, 246, 0.4));
+/* ── UPDATED LOGO IMAGE ── */
+.logo-img {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    object-fit: cover;
+    background: #8b5cf6; /* fallback color while image loads */
+    border: 2px solid rgba(255, 255, 255, 0.1);
 }
 .logo span {
     background: linear-gradient(135deg, #a78bfa, #6ee7ff);
@@ -734,7 +738,6 @@ body {
     margin-right: 6px;
 }
 
-/* Settings Section */
 .settings-section {
     margin-top: 12px;
     background: rgba(255, 255, 255, 0.03);
@@ -779,7 +782,6 @@ body {
     width: 20px;
 }
 
-/* Theme buttons */
 .theme-options {
     display: flex;
     gap: 6px;
@@ -805,7 +807,6 @@ body {
     transform: scale(1.1);
 }
 
-/* Toggle Switch */
 .toggle-switch {
     position: relative;
     width: 40px;
@@ -1073,6 +1074,9 @@ body {
 .fab-button i {
     pointer-events: none;
 }
+.fab-button.hidden {
+    display: none !important;
+}
 
 /* ─── DIALPAD OVERLAY ─── */
 .dialpad-overlay {
@@ -1218,46 +1222,10 @@ body {
     transform: scale(0.95);
 }
 
-/* ─── RESPONSIVE TWEAKS ─── */
-@media (max-width: 480px) {
-    .fab-button {
-        width: 52px;
-        height: 52px;
-        font-size: 22px;
-        bottom: 80px;
-        right: 14px;
-    }
-    .dialpad {
-        padding: 18px 14px 16px 14px;
-    }
-    .dial-btn {
-        padding: 12px 0;
-        font-size: 20px;
-    }
-    .dialpad-display {
-        font-size: 20px;
-        min-height: 44px;
-        padding: 10px 12px;
-    }
-    .profile-panel {
-        width: 88%;
-        padding: 14px 12px;
-    }
-    .settings-section {
-        padding: 10px 12px;
-    }
-}
-
 /* ─── STATUS BADGE in header ─── */
-.logo {
-    position: relative;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-}
 .status-badge {
     font-size: 10px;
-    display: flex;
+    display: inline-flex;
     align-items: center;
     gap: 4px;
     background: rgba(255, 255, 255, 0.06);
@@ -1266,13 +1234,18 @@ body {
     color: #7a89a8;
     margin-left: 4px;
     border: 1px solid rgba(255, 255, 255, 0.04);
+    transition: all 0.3s ease;
+}
+.status-badge:hover {
+    background: rgba(255, 255, 255, 0.1);
 }
 .status-dot-badge {
     width: 8px;
     height: 8px;
     border-radius: 50%;
     display: inline-block;
-    background: #64748b; /* offline default */
+    background: #64748b;
+    transition: all 0.3s ease;
 }
 .status-dot-badge.online {
     background: #22c55e;
@@ -1437,10 +1410,36 @@ body {
     transform: scale(1.1);
 }
 
-/* ─── FAB HIDDEN STATE ─── */
-.fab-button.hidden {
-    display: none !important;
+/* ─── RESPONSIVE TWEAKS ─── */
+@media (max-width: 480px) {
+    .fab-button {
+        width: 52px;
+        height: 52px;
+        font-size: 22px;
+        bottom: 80px;
+        right: 14px;
+    }
+    .dialpad {
+        padding: 18px 14px 16px 14px;
+    }
+    .dial-btn {
+        padding: 12px 0;
+        font-size: 20px;
+    }
+    .dialpad-display {
+        font-size: 20px;
+        min-height: 44px;
+        padding: 10px 12px;
+    }
+    .profile-panel {
+        width: 88%;
+        padding: 14px 12px;
+    }
+    .settings-section {
+        padding: 10px 12px;
+    }
+    .logo-img {
+        width: 28px;
+        height: 28px;
+    }
 }
-
-/* ─── STATUS TOGGLE (online/offline) in settings? Not needed, but we can add a small toggle later if wanted ─── */
-/* For now, we'll just show the badge after registration, and user can toggle online via a click on the badge? We'll add a click to toggle status in JS. */
