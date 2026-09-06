@@ -606,64 +606,66 @@
         // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
         // 6. FAB (draggable)
         // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-        function initFab() {
-            const fab = document.getElementById('fabButton');
-            if (!fab) return;
-            let isDragging = false;
-            let startX, startY, origX, origY;
+      function initFab() {
+    const fab = document.getElementById('fabButton');
+    if (!fab) return;
+    let isDragging = false;
+    let startX, startY;
+    let hasMoved = false;
 
-            const onStart = (e) => {
-                const touch = e.touches ? e.touches[0] : e;
-                isDragging = true;
-                startX = touch.clientX;
-                startY = touch.clientY;
-                const rect = fab.getBoundingClientRect();
-                origX = rect.left;
-                origY = rect.top;
-                fab.style.cursor = 'grabbing';
-                e.preventDefault();
-            };
+    const onStart = (e) => {
+        const touch = e.touches ? e.touches[0] : e;
+        startX = touch.clientX;
+        startY = touch.clientY;
+        isDragging = true;
+        hasMoved = false;
+        fab.style.cursor = 'grabbing';
+        e.preventDefault(); // prevent text selection
+    };
 
-            const onMove = (e) => {
-                if (!isDragging) return;
-                const touch = e.touches ? e.touches[0] : e;
-                const dx = touch.clientX - startX;
-                const dy = touch.clientY - startY;
-                let newX = origX + dx;
-                let newY = origY + dy;
-                const rect = fab.getBoundingClientRect();
-                const maxX = window.innerWidth - rect.width - 8;
-                const maxY = window.innerHeight - rect.height - 8;
-                newX = Math.max(8, Math.min(newX, maxX));
-                newY = Math.max(8, Math.min(newY, maxY));
-                fab.style.left = newX + 'px';
-                fab.style.top = newY + 'px';
-                fab.style.right = 'auto';
-                fab.style.bottom = 'auto';
-                e.preventDefault();
-            };
-
-            const onEnd = () => {
-                isDragging = false;
-                fab.style.cursor = 'grab';
-            };
-
-            fab.addEventListener('mousedown', onStart);
-            document.addEventListener('mousemove', onMove);
-            document.addEventListener('mouseup', onEnd);
-            fab.addEventListener('touchstart', onStart, { passive: false });
-            document.addEventListener('touchmove', onMove, { passive: false });
-            document.addEventListener('touchend', onEnd);
-
-            let clickTimer = null;
-            fab.addEventListener('click', (e) => {
-                if (isDragging) return;
-                if (clickTimer) clearTimeout(clickTimer);
-                clickTimer = setTimeout(() => {
-                    document.getElementById('dialpadOverlay').classList.add('open');
-                }, 100);
-            });
+    const onMove = (e) => {
+        if (!isDragging) return;
+        const touch = e.touches ? e.touches[0] : e;
+        const dx = touch.clientX - startX;
+        const dy = touch.clientY - startY;
+        // If moved more than 5px, mark as drag
+        if (Math.abs(dx) > 5 || Math.abs(dy) > 5) {
+            hasMoved = true;
         }
+        // Move the FAB
+        const rect = fab.getBoundingClientRect();
+        let newX = rect.left + dx;
+        let newY = rect.top + dy;
+        const maxX = window.innerWidth - rect.width - 8;
+        const maxY = window.innerHeight - rect.height - 8;
+        newX = Math.max(8, Math.min(newX, maxX));
+        newY = Math.max(8, Math.min(newY, maxY));
+        fab.style.left = newX + 'px';
+        fab.style.top = newY + 'px';
+        fab.style.right = 'auto';
+        fab.style.bottom = 'auto';
+        // Update start for the next move
+        startX = touch.clientX;
+        startY = touch.clientY;
+        e.preventDefault();
+    };
+
+    const onEnd = () => {
+        // If it wasn't a drag, open dialpad
+        if (isDragging && !hasMoved) {
+            document.getElementById('dialpadOverlay').classList.add('open');
+        }
+        isDragging = false;
+        fab.style.cursor = 'grab';
+    };
+
+    fab.addEventListener('mousedown', onStart);
+    document.addEventListener('mousemove', onMove);
+    document.addEventListener('mouseup', onEnd);
+    fab.addEventListener('touchstart', onStart, { passive: false });
+    document.addEventListener('touchmove', onMove, { passive: false });
+    document.addEventListener('touchend', onEnd);
+}
 
         // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
         // 7. DIALPAD
