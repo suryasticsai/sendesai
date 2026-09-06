@@ -23,14 +23,7 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
-    // Initialize all features
-    initFab();
-    initDialpad();
-    initSettings();
-    initRegistration();
-    initFabToggle();
-
-    // Load saved user status
+    // ─── LOAD SAVED USER STATUS ───
     const savedUser = localStorage.getItem('neonUser');
     if (savedUser) {
         try {
@@ -41,12 +34,21 @@ document.addEventListener('DOMContentLoaded', function () {
         } catch (e) {}
     }
 
-    // Render initial data
+    // ─── INIT ALL FEATURES ───
+    initFab();
+    initDialpad();
+    initSettings();
+    initRegistration();
+    initFabToggle();
+
+    // ─── RENDER INITIAL DATA ───
     renderChatList();
     renderCallList();
 
-    // Set up event listeners for UI interactions
+    // ─── SET UP EVENT LISTENERS ───
     setupEventListeners();
+
+    console.log('🚀 Sandesai · All systems ready');
 });
 
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -175,6 +177,7 @@ let currentTab = 'chat';
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 function renderChatList() {
     const container = document.getElementById('chatList');
+    if (!container) return;
     container.innerHTML = '';
     contacts.forEach(c => {
         const div = document.createElement('div');
@@ -200,12 +203,14 @@ function renderChatList() {
         div.addEventListener('click', () => openChat(c.id));
         container.appendChild(div);
     });
-    // Re-apply theme after rendering (so colors update)
-    applyTheme(localStorage.getItem('neonTheme') || 'dark');
+    // Re-apply theme after rendering
+    const savedTheme = localStorage.getItem('neonTheme') || 'dark';
+    applyTheme(savedTheme);
 }
 
 function renderCallList() {
     const container = document.getElementById('callList');
+    if (!container) return;
     container.innerHTML = '';
     callLogs.forEach(call => {
         const div = document.createElement('div');
@@ -224,11 +229,13 @@ function renderCallList() {
         `;
         container.appendChild(div);
     });
-    applyTheme(localStorage.getItem('neonTheme') || 'dark');
+    const savedTheme = localStorage.getItem('neonTheme') || 'dark';
+    applyTheme(savedTheme);
 }
 
 function renderMessages() {
     const container = document.getElementById('chatMessages');
+    if (!container) return;
     const contact = contacts.find(c => c.id === activeContactId);
     if (!contact) return;
     container.innerHTML = '';
@@ -242,6 +249,7 @@ function renderMessages() {
     });
     container.scrollTop = container.scrollHeight;
 
+    // Update chat header
     document.getElementById('chatName').textContent = contact.name;
     document.getElementById('chatStatus').textContent = `${contact.online ? 'Online' : 'Offline'} · ${contact.time}`;
     const avatarEl = document.getElementById('chatAvatar');
@@ -255,7 +263,8 @@ function renderMessages() {
     document.getElementById('profilePhone').innerHTML = `<i class="fas fa-phone"></i> +91 9995554443`;
     document.getElementById('profileTime').innerHTML = `<i class="far fa-clock"></i> Last active: ${contact.time}`;
 
-    applyTheme(localStorage.getItem('neonTheme') || 'dark');
+    const savedTheme = localStorage.getItem('neonTheme') || 'dark';
+    applyTheme(savedTheme);
 }
 
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -293,7 +302,8 @@ function openChat(id) {
     document.querySelectorAll('.chat-item').forEach(el => {
         el.classList.toggle('active', parseInt(el.dataset.id) === id);
     });
-    applyTheme(localStorage.getItem('neonTheme') || 'dark');
+    const savedTheme = localStorage.getItem('neonTheme') || 'dark';
+    applyTheme(savedTheme);
 }
 
 function closeChat() {
@@ -310,7 +320,8 @@ function openMyProfile() {
     document.getElementById('profilePhone').innerHTML = `<i class="fas fa-phone"></i> ${myProfile.phone}`;
     document.getElementById('profileTime').innerHTML = `<i class="far fa-clock"></i> Last active: ${myProfile.time}`;
     panel.classList.add('open');
-    applyTheme(localStorage.getItem('neonTheme') || 'dark');
+    const savedTheme = localStorage.getItem('neonTheme') || 'dark';
+    applyTheme(savedTheme);
 }
 
 function toggleProfile(open) {
@@ -361,6 +372,7 @@ function sendMessage() {
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 function initFab() {
     const fab = document.getElementById('fabButton');
+    if (!fab) return;
     let isDragging = false;
     let startX, startY, origX, origY;
 
@@ -423,6 +435,7 @@ function initFab() {
 function initDialpad() {
     const overlay = document.getElementById('dialpadOverlay');
     const display = document.getElementById('dialpadDisplay');
+    if (!overlay || !display) return;
     let number = '';
 
     document.getElementById('dialpadClose').addEventListener('click', () => {
@@ -518,8 +531,9 @@ function initSettings() {
 function applyTheme(theme) {
     const app = document.getElementById('app');
     const body = document.body;
+    if (!app) return;
 
-    // Reset any inline styles that might conflict
+    // Reset inline styles
     app.style.background = '';
     app.style.backdropFilter = '';
     body.style.background = '';
@@ -528,7 +542,6 @@ function applyTheme(theme) {
         app.style.background = 'rgba(240, 242, 247, 0.85)';
         app.style.backdropFilter = 'blur(28px) saturate(1.6)';
         body.style.background = '#e8ecf1';
-        // Apply to all dynamic elements
         document.querySelectorAll('.msg.received').forEach(el => {
             el.style.background = 'rgba(0,0,0,0.04)';
             el.style.color = '#1a1832';
@@ -670,6 +683,7 @@ function updateStatusBadge(user) {
     const badge = document.getElementById('statusBadge');
     const dot = document.getElementById('statusDot');
     const text = document.getElementById('statusText');
+    if (!badge || !dot || !text) return;
     if (user && user.registered) {
         badge.style.display = 'inline-flex';
         const status = user.status || 'offline';
@@ -684,7 +698,8 @@ function updateStatusBadge(user) {
             localStorage.setItem('neonUser', JSON.stringify(user));
             updateStatusBadge(user);
         };
-        applyTheme(localStorage.getItem('neonTheme') || 'dark');
+        const savedTheme = localStorage.getItem('neonTheme') || 'dark';
+        applyTheme(savedTheme);
     } else {
         badge.style.display = 'none';
     }
@@ -720,7 +735,7 @@ function toggleAiOverlay(open) {
 }
 
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// 12. EVENT LISTENERS (UI)
+// 12. EVENT LISTENERS
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 function setupEventListeners() {
     // Back button
@@ -815,5 +830,5 @@ function setupEventListeners() {
         }
     });
 
-    console.log('🚀 NeonChat · All settings fixed and working');
+    console.log('✅ Sandesai · All event listeners attached');
 }
